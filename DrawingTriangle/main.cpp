@@ -86,6 +86,11 @@ private:
 
     void cleanup()
     {
+        // Destroy the Vulkan instance
+        // The nullptr refers to the callback allocator
+        vkDestroyInstance(vkInstance, nullptr);
+
+        // Destroy the GLFW window
         glfwDestroyWindow(window);
         glfwTerminate();
     }
