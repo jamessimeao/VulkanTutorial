@@ -9,6 +9,12 @@
 
 class HelloTriangleApplication
 {
+private:
+    GLFWwindow * window;
+    const uint32_t WIDTH {800};
+    const uint32_t HEIGHT {600};
+
+
 public:
     void run()
     {
@@ -27,6 +33,9 @@ private:
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         // Disable window resizing
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+        // Create a window
+        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
     }
 
     void initVulkan()
@@ -36,7 +45,11 @@ private:
 
     void mainLoop()
     {
-
+        // Keep the window open
+        while(!glfwWindowShouldClose(window))
+        {
+            glfwPollEvents();
+        }
     }
 
     void cleanup()
