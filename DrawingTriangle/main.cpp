@@ -28,6 +28,9 @@ private:
     // Vulkan instance
     VkInstance vkInstance;
 
+    // Physical device
+    VkPhysicalDevice vkPhysicalDevice {VK_NULL_HANDLE};
+
 public:
     void run()
     {
@@ -54,6 +57,7 @@ private:
     void initVulkan()
     {
         createVkInstance();
+        pickPhysicalDevice();
     }
 
     void createVkInstance()
@@ -144,6 +148,56 @@ private:
         return true;
     }
 
+    void pickPhysicalDevice()
+    {
+        // Count the devices with Vulkan support
+        uint32_t deviceCount {0};
+        vkEnumeratePhysicalDevices(vkInstance, &deviceCount, nullptr);
+        if(deviceCount == 0)
+        {
+            throw std::runtime_error("Failed to find GPUs with Vulkan support");
+        }
+        
+        // Initialize a vector of VkPhysicalDevice with deviceCount entries
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        // Store the devices with Vulkan support into the devices vector
+        vkEnumeratePhysicalDevices(vkInstance, &deviceCount, devices.data());
+
+        // select the first suitable device
+        for(VkPhysicalDevice device : devices)
+        {
+            if(isDeviceSuitable(device))
+            {
+                vkPhysicalDevice = device;
+                break;
+            }
+        }
+
+        if(vkPhysicalDevice == VK_NULL_HANDLE)
+        {
+            throw std::runtime_error("Failed to find a suitable GPU");
+        }
+    }
+
+    bool isDeviceSuitable(VkPhysicalDevice device)
+    {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+        VkPhysicalDeviceFeatures deviceFeatures;
+        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+        //bool isDiscreteGPU = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+        bool supportsGeometryShaders = deviceFeatures.geometryShader;
+        bool isSuitable =  supportsGeometryShaders;
+
+        std::cout << std::boolalpha;
+        //std::cout << "discrete gpu: " << isDiscreteGPU << std::endl;
+        std::cout << "geometry shaders: " << supportsGeometryShaders << std::endl;
+
+        return isSuitable;
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -155,6 +209,9 @@ private:
 
     void cleanup()
     {
+        // Don't need to cleanup the physical device,
+        // it is already destroyed together with the Vulkan instance
+
         // Destroy the Vulkan instance
         // The nullptr refers to the callback allocator
         vkDestroyInstance(vkInstance, nullptr);
