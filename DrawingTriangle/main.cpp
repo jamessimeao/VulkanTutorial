@@ -49,6 +49,9 @@ private:
     // Logical device, to interface with the physical device
     VkDevice vkDevice;
 
+    // Graphics queue
+    VkQueue graphicsQueue;
+
 public:
     void run()
     {
@@ -283,6 +286,9 @@ private:
         {
             throw std::runtime_error("Failed to create logical device");
         }
+
+        // Get a queue handle
+        vkGetDeviceQueue(vkDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
     }
 
     void mainLoop()
@@ -296,6 +302,9 @@ private:
 
     void cleanup()
     {
+        // Don't need to cleanup the graphics queue.
+        // it is destroyed when the (logical?) device is destroyed
+
         // Destroy the logical device
         vkDestroyDevice(vkDevice, nullptr);
 
