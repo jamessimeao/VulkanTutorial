@@ -43,6 +43,12 @@ private:
     // Physical device
     VkPhysicalDevice vkPhysicalDevice {VK_NULL_HANDLE};
 
+    // Queue families
+    QueueFamilyIndices indices;
+
+    // Logical device, to interface with the physical device
+    VkDevice vkDevice;
+
 public:
     void run()
     {
@@ -70,6 +76,7 @@ private:
     {
         createVkInstance();
         pickPhysicalDevice();
+        createLogicalDevice();
     }
 
     void createVkInstance()
@@ -91,28 +98,28 @@ private:
         appInfo.engineVersion = VK_MAKE_VERSION(1,0,0);
         appInfo.apiVersion = VK_API_VERSION_1_0;
 
-        VkInstanceCreateInfo createInfo {};
-        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        createInfo.pApplicationInfo = &appInfo;
+        VkInstanceCreateInfo instanceCreateInfo {};
+        instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        instanceCreateInfo.pApplicationInfo = &appInfo;
 
         uint32_t glfwExtensionCount {0};
         const char ** glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-        createInfo.enabledExtensionCount = glfwExtensionCount;
-        createInfo.ppEnabledExtensionNames = glfwExtensions;
+        instanceCreateInfo.enabledExtensionCount = glfwExtensionCount;
+        instanceCreateInfo.ppEnabledExtensionNames = glfwExtensions;
 
         if(enableValidationLayers)
         {
-            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-            createInfo.ppEnabledLayerNames = validationLayers.data();
+            instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
         }
         else
         {
-            createInfo.enabledLayerCount = 0;
+            instanceCreateInfo.enabledLayerCount = 0;
         }
 
-        VkResult result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
+        VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &vkInstance);
         if(result != VK_SUCCESS)
         {
             std::cout << "Failed to create Vulkan instance" << std::endl;
@@ -209,7 +216,7 @@ private:
 
 
         // Queue families
-        QueueFamilyIndices indices = findQueueFamilies(device);
+        indices = findQueueFamilies(device);
 
         std::cout << "has queue families: " << indices.isComplete() << std::endl;
 
@@ -242,6 +249,42 @@ private:
         return indices;
     }
 
+    void createLogicalDevice()
+    {
+        VkDeviceQueueCreateInfo queueCreateInfo {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+        queueCreateInfo.queueCount = 1;
+        const float queuePriority = 1.0f;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        
+        // again?
+        VkPhysicalDeviceFeatures deviceFeatures{};
+
+        VkDeviceCreateInfo deviceCreateInfo{};
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+        deviceCreateInfo.queueCreateInfoCount = 1;
+        deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+        deviceCreateInfo.enabledExtensionCount = 0;
+
+        if(enableValidationLayers)
+        {
+            deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+        }
+        else
+        {
+            deviceCreateInfo.enabledLayerCount = 0;
+        }
+
+        VkResult result = vkCreateDevice(vkPhysicalDevice, &deviceCreateInfo, nullptr, &vkDevice);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create logical device");
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -253,6 +296,9 @@ private:
 
     void cleanup()
     {
+        // Destroy the logical device
+        vkDestroyDevice(vkDevice, nullptr);
+
         // Don't need to cleanup the physical device,
         // it is already destroyed together with the Vulkan instance
 
