@@ -17,6 +17,18 @@ const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"
     const bool enableValidationLayers {true};
 #endif
 
+#include <optional>
+
+struct QueueFamilyIndices
+{
+    std::optional<uint32_t> graphicsFamily;
+
+    bool isComplete()
+    {
+        return graphicsFamily.has_value();
+    }
+};
+
 class HelloTriangleApplication
 {
 private:
@@ -189,13 +201,45 @@ private:
 
         //bool isDiscreteGPU = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
         bool supportsGeometryShaders = deviceFeatures.geometryShader;
-        bool isSuitable =  supportsGeometryShaders;
 
+        
         std::cout << std::boolalpha;
         //std::cout << "discrete gpu: " << isDiscreteGPU << std::endl;
         std::cout << "geometry shaders: " << supportsGeometryShaders << std::endl;
 
+
+        // Queue families
+        QueueFamilyIndices indices = findQueueFamilies(device);
+
+        std::cout << "has queue families: " << indices.isComplete() << std::endl;
+
+        bool isSuitable =  supportsGeometryShaders && indices.isComplete();
+
         return isSuitable;
+    }
+
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
+    {
+        QueueFamilyIndices indices;
+
+        uint32_t queueFamilyCount {0};
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+        int i {0};
+        for(const VkQueueFamilyProperties& queueFamily : queueFamilies)
+        {
+            if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            {
+                indices.graphicsFamily = i;
+                break;
+            }
+            i++;
+        }
+
+        return indices;
     }
 
     void mainLoop()
