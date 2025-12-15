@@ -85,7 +85,7 @@ private:
     VkExtent2D swapChainExtent;
 
     // Image views
-    //std::vector<VkImageView> swapChainImageViews;
+    std::vector<VkImageView> swapChainImageViews;
 
 public:
     void run()
@@ -112,12 +112,18 @@ private:
 
     void initVulkan()
     {
+        std::cout << "create instance" << std::endl;
         createVkInstance();
+        std::cout << "create surface" << std::endl;
         createSurface();
+        std::cout << "create physical device" << std::endl;
         pickPhysicalDevice();
+        std::cout << "create logical device" << std::endl;
         createLogicalDevice();
+        std::cout << "create swap chain" << std::endl;
         createSwapChain();
-        //createImageViews();
+        std::cout << "create image views" << std::endl;
+        createImageViews();
     }
 
     void createVkInstance()
@@ -261,13 +267,13 @@ private:
         bool supportsGeometryShaders = deviceFeatures.geometryShader;
         
         std::cout << std::boolalpha;
-        //std::cout << "is discrete gpu: " << isDiscreteGPU << std::endl;
-        std::cout << "has geometry shaders: " << supportsGeometryShaders << std::endl;
+        //std::cout << "-- is discrete gpu: " << isDiscreteGPU << std::endl;
+        std::cout << "-- has geometry shaders: " << supportsGeometryShaders << std::endl;
 
         // Queue families
         indices = findQueueFamilies(physicalDevice);
 
-        std::cout << "has queue families: " << indices.isComplete() << std::endl;
+        std::cout << "-- has queue families: " << indices.isComplete() << std::endl;
 
         // Swap chains
         bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
@@ -488,9 +494,11 @@ private:
     {
         SwapChainSupportDetails swapChainSupportDetails = querySwapChainSupport(vkPhysicalDevice);
 
-        VkSurfaceFormatKHR swapChainImageFormat = chooseSwapSurfaceFormat(swapChainSupportDetails.formats);
+        VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupportDetails.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupportDetails.presentModes);
         VkExtent2D swapChainExtent = chooseSwapExtent(swapChainSupportDetails.capabilities);
+
+        swapChainImageFormat = surfaceFormat.format;
 
         // Choose image count as minimum + 1
         uint32_t minImageCount = swapChainSupportDetails.capabilities.minImageCount + 1;
@@ -507,8 +515,8 @@ private:
         swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         swapchainCreateInfo.surface = surface;
         swapchainCreateInfo.minImageCount = minImageCount;
-        swapchainCreateInfo.imageFormat = swapChainImageFormat.format;
-        swapchainCreateInfo.imageColorSpace = swapChainImageFormat.colorSpace;
+        swapchainCreateInfo.imageFormat = surfaceFormat.format;
+        swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
         swapchainCreateInfo.imageExtent = swapChainExtent;
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -551,12 +559,37 @@ private:
         vkGetSwapchainImagesKHR(vkDevice, swapChain, &imageCount, swapChainImages.data());
     }
 
-    /*
+    
     void createImageViews()
     {
         swapChainImageViews.resize(swapChainImages.size());
+
+        for(size_t i {0}; i < swapChainImages.size(); i++)
+        {
+            std::cout << "-- creating image view " << i << std::endl;
+            VkImageViewCreateInfo imageViewCreateInfo {};
+            imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imageViewCreateInfo.image = swapChainImages[i];
+            imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imageViewCreateInfo.format = swapChainImageFormat;
+            imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+            imageViewCreateInfo.subresourceRange.levelCount = 1;
+            imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+            imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+            VkResult result = vkCreateImageView(vkDevice, &imageViewCreateInfo, nullptr, &swapChainImageViews[i]);
+            if(result != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to create image views");
+            }
+        }
     }
-    */
+    
 
     void mainLoop()
     {
@@ -569,6 +602,14 @@ private:
 
     void cleanup()
     {
+        // Destroy the swap chain image views
+        for(VkImageView& imageView : swapChainImageViews)
+        {
+            vkDestroyImageView(vkDevice, imageView, nullptr);
+        }
+
+        // Don't need to cleanup the swap chain images
+
         // Destroy the swap chain
         vkDestroySwapchainKHR(vkDevice, swapChain, nullptr);
 
