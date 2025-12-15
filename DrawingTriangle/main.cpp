@@ -52,6 +52,9 @@ private:
     // Graphics queue
     VkQueue graphicsQueue;
 
+    // Window surface
+    VkSurfaceKHR surface;
+
 public:
     void run()
     {
@@ -78,6 +81,7 @@ private:
     void initVulkan()
     {
         createVkInstance();
+        createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
     }
@@ -168,6 +172,16 @@ private:
         }
 
         return true;
+    }
+
+    void createSurface()
+    {
+        // nullptr refers to the custom allocator
+        VkResult result = glfwCreateWindowSurface(vkInstance, window, nullptr, &surface);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create window surface");
+        }
     }
 
     void pickPhysicalDevice()
@@ -310,6 +324,9 @@ private:
 
         // Don't need to cleanup the physical device,
         // it is already destroyed together with the Vulkan instance
+
+        // Destroy the window surface
+        vkDestroySurfaceKHR(vkInstance, surface, nullptr);
 
         // Destroy the Vulkan instance
         // The nullptr refers to the callback allocator
