@@ -18,10 +18,6 @@ const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"
 #endif
 
 #include <optional>
-#include <set>
-
-// Swap chains
-const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 struct QueueFamilyIndices
 {
@@ -32,6 +28,18 @@ struct QueueFamilyIndices
     {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
+};
+
+#include <set>
+
+// Swap chains
+const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+struct SwapChainSupportDetails
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
 };
 
 class HelloTriangleApplication
@@ -357,6 +365,36 @@ private:
         // Get a queue handle
         vkGetDeviceQueue(vkDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
         vkGetDeviceQueue(vkDevice, indices.presentFamily.value(), 0, &presentQueue);
+    }
+
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice)
+    {
+        SwapChainSupportDetails details;
+
+        // Capabilities
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &details.capabilities);
+
+        // Formats
+        uint32_t formatCount {0};
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+        if(formatCount != 0)
+        {
+            details.formats.resize(formatCount);
+            vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, details.formats.data());
+        }
+
+        // Present mode
+        uint32_t presentModeCount {0};
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+
+        if(presentModeCount != 0)
+        {
+            details.presentModes.resize(presentModeCount);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, details.presentModes.data());
+
+        }
+
+        return details;
     }
 
     void mainLoop()
