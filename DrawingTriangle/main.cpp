@@ -18,6 +18,7 @@ const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"
 #endif
 
 #include <optional>
+#include <set>
 
 struct QueueFamilyIndices
 {
@@ -41,6 +42,9 @@ private:
     // Vulkan instance
     VkInstance vkInstance;
 
+    // Window surface
+    VkSurfaceKHR surface;
+
     // Physical device
     VkPhysicalDevice vkPhysicalDevice {VK_NULL_HANDLE};
 
@@ -53,8 +57,8 @@ private:
     // Graphics queue
     VkQueue graphicsQueue;
 
-    // Window surface
-    VkSurfaceKHR surface;
+    // Presentation queue
+    VkQueue presentQueue;
 
 public:
     void run()
@@ -229,8 +233,8 @@ private:
 
         
         std::cout << std::boolalpha;
-        //std::cout << "discrete gpu: " << isDiscreteGPU << std::endl;
-        std::cout << "geometry shaders: " << supportsGeometryShaders << std::endl;
+        //std::cout << "is discrete gpu: " << isDiscreteGPU << std::endl;
+        std::cout << "has geometry shaders: " << supportsGeometryShaders << std::endl;
 
 
         // Queue families
