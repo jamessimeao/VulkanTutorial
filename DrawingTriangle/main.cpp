@@ -22,10 +22,11 @@ const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"
 struct QueueFamilyIndices
 {
     std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
 
     bool isComplete()
     {
-        return graphicsFamily.has_value();
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
@@ -242,24 +243,39 @@ private:
         return isSuitable;
     }
 
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice)
     {
         QueueFamilyIndices indices;
 
         uint32_t queueFamilyCount {0};
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
 
         int i {0};
         for(const VkQueueFamilyProperties& queueFamily : queueFamilies)
         {
+            // Graphics family
             if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
                 indices.graphicsFamily = i;
+            }
+
+            // Presentation family
+            VkBool32 presentSupport {false};
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
+            if(presentSupport)
+            {
+                indices.presentFamily = i;
+            }
+
+            // Early stop
+            if(indices.isComplete())
+            {
                 break;
             }
+
             i++;
         }
 
