@@ -75,6 +75,9 @@ private:
     // Presentation queue
     VkQueue presentQueue;
 
+    // Swap chain
+    VkSwapchainKHR swapChain;
+
 public:
     void run()
     {
@@ -104,6 +107,7 @@ private:
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
+        createSwapChain();
     }
 
     void createVkInstance()
@@ -470,6 +474,67 @@ private:
         }
     }
 
+    void createSwapChain()
+    {
+        SwapChainSupportDetails swapChainSupportDetails = querySwapChainSupport(vkPhysicalDevice);
+
+        VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupportDetails.formats);
+        VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupportDetails.presentModes);
+        VkExtent2D extent = chooseSwapExtent(swapChainSupportDetails.capabilities);
+
+        // Choose image count as minimum + 1
+        uint32_t imageCount = swapChainSupportDetails.capabilities.minImageCount + 1;
+        // But if it exceeds the maximum, use the maximum
+        if(
+            swapChainSupportDetails.capabilities.maxImageCount > 0 &&
+            imageCount > swapChainSupportDetails.capabilities.maxImageCount
+        )
+        {
+            imageCount = swapChainSupportDetails.capabilities.maxImageCount;
+        }
+
+        VkSwapchainCreateInfoKHR swapchainCreateInfo {};
+        swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swapchainCreateInfo.surface = surface;
+        swapchainCreateInfo.minImageCount = imageCount;
+        swapchainCreateInfo.imageFormat = surfaceFormat.format;
+        swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
+        swapchainCreateInfo.imageExtent = extent;
+        swapchainCreateInfo.imageArrayLayers = 1;
+        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+        if(indices.graphicsFamily != indices.presentFamily)
+        {
+            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            swapchainCreateInfo.queueFamilyIndexCount = 2;
+            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+        }
+        else
+        {
+            swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            swapchainCreateInfo.queueFamilyIndexCount = 0; // optional
+            swapchainCreateInfo.pQueueFamilyIndices = nullptr; // optional
+        }
+
+        // Don't apply transformation to image, like rotation
+        swapchainCreateInfo.preTransform = swapChainSupportDetails.capabilities.currentTransform;
+        // Don't blend the alpha channel with other windows in the window system
+        swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        swapchainCreateInfo.presentMode = presentMode;
+        // Don't care about pixels behind another window, it is better for performance
+        swapchainCreateInfo.clipped = VK_TRUE;
+        // Don't create a new swap chain if it becomes invalid
+        swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+        // Create the swap chain
+        VkResult result = vkCreateSwapchainKHR(vkDevice, &swapchainCreateInfo, nullptr, &swapChain);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create swap chain");
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -481,6 +546,9 @@ private:
 
     void cleanup()
     {
+        // Destroy the swap chain
+        vkDestroySwapchainKHR(vkDevice, swapChain, nullptr);
+
         // Don't need to cleanup the graphics queue.
         // it is destroyed when the (logical?) device is destroyed
 
