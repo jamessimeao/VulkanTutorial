@@ -403,6 +403,24 @@ private:
         return details;
     }
 
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> & availableFormats)
+    {
+        // First check for preferable format
+        for(const VkSurfaceFormatKHR & availableFormat : availableFormats)
+        {
+            if(
+                availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+                availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+            )
+            {
+                return availableFormat;
+            }
+        }
+
+        // If the preferable format isn't avaible, pick the first one available
+        return availableFormats[0];
+    }
+
     void mainLoop()
     {
         // Keep the window open
