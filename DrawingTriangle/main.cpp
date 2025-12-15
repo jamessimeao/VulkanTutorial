@@ -230,12 +230,10 @@ private:
 
         //bool isDiscreteGPU = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
         bool supportsGeometryShaders = deviceFeatures.geometryShader;
-
         
         std::cout << std::boolalpha;
         //std::cout << "is discrete gpu: " << isDiscreteGPU << std::endl;
         std::cout << "has geometry shaders: " << supportsGeometryShaders << std::endl;
-
 
         // Queue families
         indices = findQueueFamilies(device);
@@ -288,20 +286,28 @@ private:
 
     void createLogicalDevice()
     {
-        VkDeviceQueueCreateInfo queueCreateInfo {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-        queueCreateInfo.queueCount = 1;
+        // Create the queues (graphics and presentation)
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
         const float queuePriority = 1.0f;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        for(uint32_t queueFamily : uniqueQueueFamilies)
+        {
+            VkDeviceQueueCreateInfo queueCreateInfo {};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
         
         // again?
         VkPhysicalDeviceFeatures deviceFeatures{};
 
         VkDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-        deviceCreateInfo.queueCreateInfoCount = 1;
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
         deviceCreateInfo.enabledExtensionCount = 0;
 
@@ -323,6 +329,7 @@ private:
 
         // Get a queue handle
         vkGetDeviceQueue(vkDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
+        vkGetDeviceQueue(vkDevice, indices.presentFamily.value(), 0, &presentQueue);
     }
 
     void mainLoop()
