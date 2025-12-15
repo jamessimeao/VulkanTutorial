@@ -253,8 +253,14 @@ private:
 
         // Swap chains
         bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
+        bool swapChainAdequate {false};
+        if(extensionsSupported)
+        {
+            SwapChainSupportDetails swapChainSupportDetails = querySwapChainSupport(physicalDevice);
+            swapChainAdequate = !swapChainSupportDetails.formats.empty() && !swapChainSupportDetails.presentModes.empty();
+        }
 
-        bool isSuitable =  supportsGeometryShaders && indices.isComplete() && extensionsSupported;
+        bool isSuitable =  supportsGeometryShaders && indices.isComplete() && swapChainAdequate;
 
         return isSuitable;
     }
