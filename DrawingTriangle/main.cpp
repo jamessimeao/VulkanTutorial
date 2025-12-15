@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <cstdlib>
 
-//Validation layers
+// Validation layers
 #include <vector>
 #include <cstring> //for strcmp, to compare C strings
 const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
@@ -19,6 +19,9 @@ const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"
 
 #include <optional>
 #include <set>
+
+// Swap chains
+const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 struct QueueFamilyIndices
 {
@@ -220,13 +223,13 @@ private:
         }
     }
 
-    bool isDeviceSuitable(VkPhysicalDevice device)
+    bool isDeviceSuitable(VkPhysicalDevice physicalDevice)
     {
         VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+        vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 
         VkPhysicalDeviceFeatures deviceFeatures;
-        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+        vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
 
         //bool isDiscreteGPU = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
         bool supportsGeometryShaders = deviceFeatures.geometryShader;
@@ -236,11 +239,14 @@ private:
         std::cout << "has geometry shaders: " << supportsGeometryShaders << std::endl;
 
         // Queue families
-        indices = findQueueFamilies(device);
+        indices = findQueueFamilies(physicalDevice);
 
         std::cout << "has queue families: " << indices.isComplete() << std::endl;
 
-        bool isSuitable =  supportsGeometryShaders && indices.isComplete();
+        // Swap chains
+        bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
+
+        bool isSuitable =  supportsGeometryShaders && indices.isComplete() && extensionsSupported;
 
         return isSuitable;
     }
@@ -282,6 +288,26 @@ private:
         }
 
         return indices;
+    }
+
+    bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice)
+    {
+        uint32_t extensionCount;
+        vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+        vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
+
+        // copy the deviceExtensions vector to a new requiredExtensions set
+        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+        // remove from the set the extensions which are available
+        for(const VkExtensionProperties& extension : availableExtensions)
+        {
+            requiredExtensions.erase(extension.extensionName);
+        }
+
+        // if all extensions were removed, then all required extensions are available
+        return requiredExtensions.empty();
     }
 
     void createLogicalDevice()
