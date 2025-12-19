@@ -124,6 +124,8 @@ private:
         createSwapChain();
         std::cout << "create image views" << std::endl;
         createImageViews();
+        std::cout << "create graphics pipeline" << std::endl;
+        createGraphicsPipeline();
     }
 
     void createVkInstance()
@@ -590,6 +592,10 @@ private:
         }
     }
     
+    void createGraphicsPipeline()
+    {
+            
+    }
 
     void mainLoop()
     {
