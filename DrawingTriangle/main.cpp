@@ -46,6 +46,8 @@ struct SwapChainSupportDetails
 #include <limits> // for std::numeric_limits
 #include <algorithm> // for std::clamp
 
+#include <fstream>
+
 class HelloTriangleApplication
 {
 private:
@@ -591,10 +593,35 @@ private:
             }
         }
     }
+
+    static std::vector<char> readFile(const std::string & filename)
+    {
+        // open file and seek the end, to find the file size
+        std::ifstream file {filename, std::ios::ate | std::ios::binary};
+
+        if(!file.is_open())
+        {
+            throw std::runtime_error("Failed to open file");
+        }
+
+        // Get the file size from the head position, which is at the end of the file
+        size_t file_size {(size_t) file.tellg()};
+        // Make a buffer to store the content of the file
+        std::vector<char> buffer(file_size);
+        // Go back to the beggining of the file
+        file.seekg(0); 
+        // Store the content of the file in the buffer
+        file.read(buffer.data(), file_size);
+        // Close the file, since we already have its content
+        file.close();
+        // Return the buffer
+        return buffer;
+    }
     
     void createGraphicsPipeline()
     {
-            
+        std::vector<char> vertShaderCode = readFile("shaders/vert.spv");
+        std::vector<char> fragShaderCode = readFile("shaders/frag.spv");
     }
 
     void mainLoop()
