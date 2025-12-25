@@ -719,7 +719,17 @@ private:
         rasterizationCreateInfo.depthBiasConstantFactor = 0.0f; // optional
         rasterizationCreateInfo.depthBiasClamp = 0.0f; // optional
         rasterizationCreateInfo.depthBiasSlopeFactor = 0.0f; // optional
-        
+
+        // Multisampling
+        VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo {};
+        multisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
+        multisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampleStateCreateInfo.minSampleShading = 1.0f; // optional
+        multisampleStateCreateInfo.pSampleMask = nullptr; // optional
+        multisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // optional
+        multisampleStateCreateInfo.alphaToOneEnable = VK_FALSE; // optional
+
         // cleanup
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
         vkDestroyShaderModule(vkDevice, fragShaderModule, nullptr);
