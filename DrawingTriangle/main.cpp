@@ -660,6 +660,21 @@ private:
             fragPipelineShaderStageCreateInfo
         };
 
+        // Use dynamic states, so don't have to configure the viewport size and etc in the pipeline
+        std::vector<VkDynamicState> dynamicStates = 
+        {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR
+        };
+
+        VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo {};
+        dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+        dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
+
+        
+
+        // cleanup
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
         vkDestroyShaderModule(vkDevice, fragShaderModule, nullptr);
     }
