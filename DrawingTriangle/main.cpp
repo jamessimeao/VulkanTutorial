@@ -89,6 +89,9 @@ private:
     // Image views
     std::vector<VkImageView> swapChainImageViews;
 
+    // Pipeline layout
+    VkPipelineLayout pipelineLayout;
+
 public:
     void run()
     {
@@ -755,6 +758,20 @@ private:
         {
             colorBlendStateCreateInfo.blendConstants[i] = 0.0f; // optional
         }
+
+        // Pipeline layout
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {};
+        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutCreateInfo.setLayoutCount = 0; // optional
+        pipelineLayoutCreateInfo.pSetLayouts = nullptr; // optional
+        pipelineLayoutCreateInfo.pushConstantRangeCount = 0; // optional
+        pipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // optional
+
+        VkResult result = vkCreatePipelineLayout(vkDevice, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create pipeline layout.");
+        }
         
         // cleanup
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
@@ -772,6 +789,9 @@ private:
 
     void cleanup()
     {
+        // Destroy the pipeline layout
+        vkDestroyPipelineLayout(vkDevice, pipelineLayout, nullptr);
+
         // Destroy the swap chain image views
         for(VkImageView& imageView : swapChainImageViews)
         {
