@@ -672,7 +672,14 @@ private:
         dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 
-        
+        // No vertex data to load, because it is already in the shaders
+        VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo {};
+        vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
+        vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr; // optional
+        vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
+        vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr; // optional
+
 
         // cleanup
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
