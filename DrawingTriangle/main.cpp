@@ -516,7 +516,7 @@ private:
 
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupportDetails.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupportDetails.presentModes);
-        VkExtent2D swapChainExtent = chooseSwapExtent(swapChainSupportDetails.capabilities);
+        swapChainExtent = chooseSwapExtent(swapChainSupportDetails.capabilities);
 
         swapChainImageFormat = surfaceFormat.format;
 
