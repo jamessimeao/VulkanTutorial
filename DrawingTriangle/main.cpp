@@ -877,10 +877,8 @@ private:
             framebufferCreateInfo.renderPass = renderPass;
             framebufferCreateInfo.attachmentCount = 1;
             framebufferCreateInfo.pAttachments = attachments;
-            std::cout << "swapChainExtent.width = " << swapChainExtent.width << std::endl;
-            framebufferCreateInfo.width = swapChainExtent.width; // too big
-            std::cout << "swapChainExtent.height = " << swapChainExtent.height << std::endl;
-            framebufferCreateInfo.height = swapChainExtent.height; // too big
+            framebufferCreateInfo.width = swapChainExtent.width;
+            framebufferCreateInfo.height = swapChainExtent.height;
             framebufferCreateInfo.layers = 1;
 
             VkResult result = vkCreateFramebuffer(vkDevice, &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]);
