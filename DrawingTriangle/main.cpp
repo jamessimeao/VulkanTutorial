@@ -301,6 +301,9 @@ private:
 
         bool isSuitable =  supportsGeometryShaders && indices.isComplete() && swapChainAdequate;
 
+        std::cout << "maxFramebufferWidth = " << deviceProperties.limits.maxFramebufferWidth << std::endl;
+        std::cout << "maxFramebufferHeight = " << deviceProperties.limits.maxFramebufferHeight << std::endl;
+
         return isSuitable;
     }
 
@@ -477,10 +480,12 @@ private:
     {
         if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
         {
+            std::cout << "capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()" << std::endl;
             return capabilities.currentExtent;
         }
         else
         {
+            std::cout << "capabilities.currentExtent.width == std::numeric_limits<uint32_t>::max()" << std::endl;
             int width, height;
             glfwGetFramebufferSize(window, &width, &height);
 
