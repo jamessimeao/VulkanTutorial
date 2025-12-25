@@ -642,6 +642,24 @@ private:
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
 
+        VkPipelineShaderStageCreateInfo vertPipelineShaderStageCreateInfo {};
+        vertPipelineShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertPipelineShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertPipelineShaderStageCreateInfo.module = vertShaderModule;
+        vertPipelineShaderStageCreateInfo.pName = "main"; // function to call
+
+        VkPipelineShaderStageCreateInfo fragPipelineShaderStageCreateInfo {};
+        fragPipelineShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragPipelineShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        fragPipelineShaderStageCreateInfo.module = fragShaderModule;
+        fragPipelineShaderStageCreateInfo.pName = "main"; // function to call
+
+        VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] =
+        {
+            vertPipelineShaderStageCreateInfo,
+            fragPipelineShaderStageCreateInfo
+        };
+
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
         vkDestroyShaderModule(vkDevice, fragShaderModule, nullptr);
     }
