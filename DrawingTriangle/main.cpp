@@ -626,8 +626,11 @@ private:
         return buffer;
     }
 
-    VkShaderModule createShaderModule(const std::vector<char> shader_code)
+    VkShaderModule createShaderModule(const std::vector<char> & shader_code)
     {
+        //std::cout << "createShaderModule" << std::endl;
+        //std::cout << "Shader code size = " << shader_code.size() << std::endl;
+
         VkShaderModuleCreateInfo shaderModuleCreateInfo {};
         shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         shaderModuleCreateInfo.codeSize = shader_code.size();
@@ -681,6 +684,8 @@ private:
     {
         std::vector<char> vertShaderCode = readFile("shaders/vert.spv");
         std::vector<char> fragShaderCode = readFile("shaders/frag.spv");
+        std::cout << "vert shader code size: " << vertShaderCode.size() << " bytes" << std::endl;
+        std::cout << "frag shader code size: " << fragShaderCode.size() << " bytes" << std::endl;
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
