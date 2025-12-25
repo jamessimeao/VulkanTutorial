@@ -617,11 +617,33 @@ private:
         // Return the buffer
         return buffer;
     }
+
+    VkShaderModule createShaderModule(const std::vector<char> shader_code)
+    {
+        VkShaderModuleCreateInfo shaderModuleCreateInfo {};
+        shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        shaderModuleCreateInfo.codeSize = shader_code.size();
+        shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t *>(shader_code.data());
+
+        VkShaderModule shaderModule;
+        VkResult result = vkCreateShaderModule(vkDevice, &shaderModuleCreateInfo, nullptr, &shaderModule);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create shader module.");
+        }
+        return shaderModule;
+    }
     
     void createGraphicsPipeline()
     {
         std::vector<char> vertShaderCode = readFile("shaders/vert.spv");
         std::vector<char> fragShaderCode = readFile("shaders/frag.spv");
+
+        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+
+        vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
+        vkDestroyShaderModule(vkDevice, fragShaderModule, nullptr);
     }
 
     void mainLoop()
