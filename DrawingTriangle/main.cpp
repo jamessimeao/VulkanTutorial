@@ -103,6 +103,9 @@ private:
 
     // Command pool
     VkCommandPool commandPool;
+    
+    // Command buffer
+    VkCommandBuffer commandBuffer;
 
 public:
     void run()
@@ -149,6 +152,8 @@ private:
         createFramebuffers();
         std::cout << "create command pool" << std::endl;
         createCommandPool();
+        std::cout << "create command buffer" << std::endl;
+        createCommandBuffer();
     }
 
     void createVkInstance()
@@ -908,6 +913,21 @@ private:
         }
     }
 
+    void createCommandBuffer()
+    {
+        VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
+        commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        commandBufferAllocateInfo.commandPool = commandPool;
+        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        commandBufferAllocateInfo.commandBufferCount = 1;
+
+        VkResult result = vkAllocateCommandBuffers(vkDevice, &commandBufferAllocateInfo, &commandBuffer);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create command buffer.");
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -919,6 +939,9 @@ private:
 
     void cleanup()
     {
+        // Don't need to destroy the command buffer.
+        // It is destroyed when the command pool is destroyed.
+
         // Destroy command pool
         vkDestroyCommandPool(vkDevice, commandPool, nullptr);
 
