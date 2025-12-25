@@ -686,6 +686,26 @@ private:
         inputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
 
+        // Configure viewport
+        VkViewport viewport {};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float) swapChainExtent.width;
+        viewport.height = (float) swapChainExtent.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+
+        // Scissor
+        VkRect2D scissor {};
+        scissor.offset = {0, 0};
+        scissor.extent = swapChainExtent;
+
+        VkPipelineViewportStateCreateInfo viewportStateCreateInfo {};
+        viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewportStateCreateInfo.viewportCount = 1;
+        //viewportStateCreateInfo.pViewports = &viewport; // uncomment with not using dynamic states
+        viewportStateCreateInfo.scissorCount = 1;
+        //viewportStateCreateInfo.pScissors = &scissor; // uncomment with not using dynamic states
 
         // cleanup
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
