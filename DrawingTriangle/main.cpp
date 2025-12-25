@@ -95,6 +95,9 @@ private:
     // Pipeline layout
     VkPipelineLayout pipelineLayout;
 
+    // Pipeline
+    VkPipeline pipeline;
+
 public:
     void run()
     {
@@ -817,6 +820,32 @@ private:
         {
             throw std::runtime_error("Failed to create pipeline layout.");
         }
+
+        // Create the graphics pipeline
+
+        VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
+        graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        graphicsPipelineCreateInfo.stageCount = 2;
+        graphicsPipelineCreateInfo.pStages = shaderStageCreateInfos;
+        graphicsPipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+        graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
+        graphicsPipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
+        graphicsPipelineCreateInfo.pRasterizationState = &rasterizationCreateInfo;
+        graphicsPipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
+        graphicsPipelineCreateInfo.pDepthStencilState = nullptr; // optional
+        graphicsPipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+        graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
+        graphicsPipelineCreateInfo.layout = pipelineLayout;
+        graphicsPipelineCreateInfo.renderPass = renderPass;
+        graphicsPipelineCreateInfo.subpass = 0;
+        graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
+        graphicsPipelineCreateInfo.basePipelineIndex = -1; // optional
+
+        result = vkCreateGraphicsPipelines(vkDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create graphics pipeline.");
+        }
         
         // cleanup
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
@@ -834,6 +863,9 @@ private:
 
     void cleanup()
     {
+        // Destroy the graphics pipeline
+        vkDestroyPipeline(vkDevice, pipeline, nullptr);
+
         // Destroy the pipeline layout
         vkDestroyPipelineLayout(vkDevice, pipelineLayout, nullptr);
 
