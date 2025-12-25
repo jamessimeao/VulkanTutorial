@@ -98,8 +98,11 @@ private:
     // Pipeline
     VkPipeline pipeline;
 
-    // Frame buffers
+    // Framebuffers
     std::vector<VkFramebuffer> swapChainFramebuffers;
+
+    // Command pool
+    VkCommandPool commandPool;
 
 public:
     void run()
@@ -144,6 +147,8 @@ private:
         createGraphicsPipeline();
         std::cout << "create framebuffers" << std::endl;
         createFramebuffers();
+        std::cout << "create command pool" << std::endl;
+        createCommandPool();
     }
 
     void createVkInstance()
@@ -889,6 +894,20 @@ private:
         }
     }
 
+    void createCommandPool()
+    {
+        VkCommandPoolCreateInfo commandPoolCreateInfo {};
+        commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        commandPoolCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+
+        VkResult result = vkCreateCommandPool(vkDevice, &commandPoolCreateInfo, nullptr, &commandPool);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create command pool.");
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -900,6 +919,9 @@ private:
 
     void cleanup()
     {
+        // Destroy command pool
+        vkDestroyCommandPool(vkDevice, commandPool, nullptr);
+
         // Destroy the graphics pipeline
         vkDestroyPipeline(vkDevice, pipeline, nullptr);
 
