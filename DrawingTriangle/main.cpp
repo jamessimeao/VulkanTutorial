@@ -98,6 +98,9 @@ private:
     // Pipeline
     VkPipeline pipeline;
 
+    // Frame buffers
+    std::vector<VkFramebuffer> swapChainFramebuffers;
+
 public:
     void run()
     {
@@ -139,6 +142,8 @@ private:
         createRenderPass();
         std::cout << "create graphics pipeline" << std::endl;
         createGraphicsPipeline();
+        std::cout << "create framebuffers" << std::endl;
+        createFramebuffers();
     }
 
     void createVkInstance()
@@ -857,6 +862,35 @@ private:
         vkDestroyShaderModule(vkDevice, fragShaderModule, nullptr);
     }
 
+    void createFramebuffers()
+    {
+        swapChainFramebuffers.resize(swapChainImageViews.size());
+        // create a framebuffer for each image view
+        for(size_t i {0}; i < swapChainFramebuffers.size(); i++)
+        {
+            VkImageView attachments[] {
+                swapChainImageViews[i]
+            };
+
+            VkFramebufferCreateInfo framebufferCreateInfo {};
+            framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferCreateInfo.renderPass = renderPass;
+            framebufferCreateInfo.attachmentCount = 1;
+            framebufferCreateInfo.pAttachments = attachments;
+            std::cout << "swapChainExtent.width = " << swapChainExtent.width << std::endl;
+            framebufferCreateInfo.width = swapChainExtent.width; // too big
+            std::cout << "swapChainExtent.height = " << swapChainExtent.height << std::endl;
+            framebufferCreateInfo.height = swapChainExtent.height; // too big
+            framebufferCreateInfo.layers = 1;
+
+            VkResult result = vkCreateFramebuffer(vkDevice, &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]);
+            if(result != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to create framebuffer.");
+            }
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -874,11 +908,17 @@ private:
         // Destroy the pipeline layout
         vkDestroyPipelineLayout(vkDevice, pipelineLayout, nullptr);
 
+        // Destroy framebuffers
+        for(VkFramebuffer & framebuffer : swapChainFramebuffers)
+        {
+            vkDestroyFramebuffer(vkDevice, framebuffer, nullptr);
+        }
+
         // Destroy the render pass
         vkDestroyRenderPass(vkDevice, renderPass, nullptr);
 
         // Destroy the swap chain image views
-        for(VkImageView& imageView : swapChainImageViews)
+        for(VkImageView & imageView : swapChainImageViews)
         {
             vkDestroyImageView(vkDevice, imageView, nullptr);
         }
