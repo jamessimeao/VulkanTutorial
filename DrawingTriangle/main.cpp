@@ -707,6 +707,19 @@ private:
         viewportStateCreateInfo.scissorCount = 1;
         //viewportStateCreateInfo.pScissors = &scissor; // uncomment with not using dynamic states
 
+        VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo {};
+        rasterizationCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterizationCreateInfo.depthClampEnable = VK_FALSE;
+        rasterizationCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+        rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizationCreateInfo.lineWidth = 1.0f;
+        rasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizationCreateInfo.depthBiasEnable = VK_FALSE;
+        rasterizationCreateInfo.depthBiasConstantFactor = 0.0f; // optional
+        rasterizationCreateInfo.depthBiasClamp = 0.0f; // optional
+        rasterizationCreateInfo.depthBiasSlopeFactor = 0.0f; // optional
+        
         // cleanup
         vkDestroyShaderModule(vkDevice, vertShaderModule, nullptr);
         vkDestroyShaderModule(vkDevice, fragShaderModule, nullptr);
