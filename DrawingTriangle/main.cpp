@@ -1037,8 +1037,6 @@ private:
         presentInfo.pSwapchains = swapChains;
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr; // optional
-
-        std::cout << "vkQueuePresentKHR" << std::endl;
         
         // ignoring the result
         vkQueuePresentKHR(presentQueue, &presentInfo);
