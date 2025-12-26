@@ -988,7 +988,8 @@ private:
 
     void drawFrame()
     {
-
+        vkWaitForFences(vkDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+        vkResetFences(vkDevice, 1, &inFlightFence);
     }
 
     void createSyncObjects()
@@ -998,6 +999,7 @@ private:
 
         VkFenceCreateInfo fenceCreateInfo {};
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         VkResult result1 = vkCreateSemaphore(vkDevice, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphore);
         VkResult result2 = vkCreateSemaphore(vkDevice, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphore);
