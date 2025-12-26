@@ -999,7 +999,6 @@ private:
 
     void drawFrame()
     {
-        std::cout << "drawFrame" << std::endl;
         vkWaitForFences(vkDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
         vkResetFences(vkDevice, 1, &inFlightFence);
 
@@ -1039,6 +1038,7 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr; // optional
 
+        std::cout << "QueuePresentKHR" << std::endl;
         // ignoring the result
         vkQueuePresentKHR(presentQueue, &presentInfo);
     }
