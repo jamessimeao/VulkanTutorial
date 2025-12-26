@@ -990,6 +990,32 @@ private:
     {
         vkWaitForFences(vkDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
         vkResetFences(vkDevice, 1, &inFlightFence);
+
+        uint32_t imageIndex;
+        // result is being ignored
+        vkAcquireNextImageKHR(vkDevice, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        vkResetCommandBuffer(commandBuffer, 0);
+        recordCommandBuffer(commandBuffer, imageIndex);
+
+        VkSubmitInfo submitInfo {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+        VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+
+        VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to submit draw command buffer.");
+        }
     }
 
     void createSyncObjects()
