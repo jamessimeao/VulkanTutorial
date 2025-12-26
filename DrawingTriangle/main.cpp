@@ -1038,7 +1038,7 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr; // optional
 
-        std::cout << "QueuePresentKHR" << std::endl;
+        std::cout << "vkQueuePresentKHR" << std::endl;
         // ignoring the result
         vkQueuePresentKHR(presentQueue, &presentInfo);
     }
