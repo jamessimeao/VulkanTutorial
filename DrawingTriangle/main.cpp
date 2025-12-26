@@ -999,6 +999,7 @@ private:
 
     void drawFrame()
     {
+        std::cout << "drawFrame" << std::endl;
         vkWaitForFences(vkDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
         vkResetFences(vkDevice, 1, &inFlightFence);
 
@@ -1027,6 +1028,19 @@ private:
         {
             throw std::runtime_error("Failed to submit draw command buffer.");
         }
+
+        VkPresentInfoKHR presentInfo;
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+        VkSwapchainKHR swapChains[] = {swapChain};
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pResults = nullptr; // optional
+
+        // ignoring the result
+        vkQueuePresentKHR(presentQueue, &presentInfo);
     }
 
     void createSyncObjects()
@@ -1063,6 +1077,8 @@ private:
             glfwPollEvents();
             drawFrame();
         }
+
+        vkDeviceWaitIdle(vkDevice);
     }
 
     void cleanup()
