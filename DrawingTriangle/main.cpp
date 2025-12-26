@@ -107,6 +107,11 @@ private:
     // Command buffer
     VkCommandBuffer commandBuffer;
 
+    // Syncing
+    VkSemaphore imageAvailableSemaphore;
+    VkSemaphore renderFinishedSemaphore;
+    VkFence inFlightFence;
+
 public:
     void run()
     {
@@ -154,6 +159,8 @@ private:
         createCommandPool();
         std::cout << "create command buffer" << std::endl;
         createCommandBuffer();
+        std::cout << "create sync objects" << std::endl;
+        createSyncObjects();
     }
 
     void createVkInstance()
@@ -979,17 +986,53 @@ private:
         } 
     }
 
+    void drawFrame()
+    {
+
+    }
+
+    void createSyncObjects()
+    {
+        VkSemaphoreCreateInfo semaphoreCreateInfo {};
+        semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceCreateInfo {};
+        fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+        VkResult result1 = vkCreateSemaphore(vkDevice, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphore);
+        VkResult result2 = vkCreateSemaphore(vkDevice, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphore);
+        VkResult result3 = vkCreateFence(vkDevice, &fenceCreateInfo, nullptr, &inFlightFence);
+        VkResult results[] = {
+            result1,
+            result2,
+            result3
+        };
+        for(VkResult result : results)
+        {
+            if(result != VK_SUCCESS)
+            {
+                throw std::runtime_error("Failed to create sync objects.");
+            }
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
         while(!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
+            drawFrame();
         }
     }
 
     void cleanup()
     {
+        // Destroy semaphores and fences
+        vkDestroySemaphore(vkDevice, imageAvailableSemaphore, nullptr);
+        vkDestroySemaphore(vkDevice, renderFinishedSemaphore, nullptr);
+        vkDestroyFence(vkDevice, inFlightFence, nullptr);
+
         // Don't need to destroy the command buffer.
         // It is destroyed when the command pool is destroyed.
 
