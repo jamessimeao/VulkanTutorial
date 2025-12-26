@@ -1028,7 +1028,7 @@ private:
             throw std::runtime_error("Failed to submit draw command buffer.");
         }
 
-        VkPresentInfoKHR presentInfo;
+        VkPresentInfoKHR presentInfo {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
@@ -1039,6 +1039,7 @@ private:
         presentInfo.pResults = nullptr; // optional
 
         std::cout << "vkQueuePresentKHR" << std::endl;
+        
         // ignoring the result
         vkQueuePresentKHR(presentQueue, &presentInfo);
     }
