@@ -114,6 +114,9 @@ private:
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
 
+    // Handling resizing explicitly
+    bool framebufferResized {false};
+
     // Frame flight
     uint32_t currentFrame {0};
 
@@ -127,6 +130,12 @@ public:
     }
 
 private:
+    static void framebufferResizeCallback(GLFWwindow * window, int width, int height)
+    {
+        HelloTriangleApplication * app = reinterpret_cast<HelloTriangleApplication *>(glfwGetWindowUserPointer(window));
+        app->framebufferResized = true;
+    }
+
     void initWindow()
     {
         glfwInit();
@@ -134,10 +143,15 @@ private:
         // Don't create context for OpenGL, since we are using Vulkan
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         // Disable window resizing
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         // Create a window
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+
+        // Pass this object to GLFW, so we can reference it from the callback
+        glfwSetWindowUserPointer(window, this);
+        // Set a callback to be called when window is resized
+        glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
     }
 
     void initVulkan()
@@ -1069,8 +1083,9 @@ private:
         presentInfo.pResults = nullptr; // optional
         
         result = vkQueuePresentKHR(presentQueue, &presentInfo);
-        if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+        if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
         {
+            framebufferResized = false;
             recreateSwapChain();
         }
         else if(result != VK_SUCCESS)
