@@ -606,6 +606,16 @@ private:
         vkGetSwapchainImagesKHR(vkDevice, swapChain, &imageCount, swapChainImages.data());
     }
 
+    void recreateSwapChain()
+    {
+        vkDeviceWaitIdle(vkDevice);
+
+        cleanupSwapChain();
+
+        createSwapChain();
+        createImageViews();
+        createFramebuffers();
+    }
     
     void createImageViews()
     {
@@ -1007,11 +1017,24 @@ private:
     void drawFrame()
     {
         vkWaitForFences(vkDevice, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-        vkResetFences(vkDevice, 1, &inFlightFences[currentFrame]);
 
         uint32_t imageIndex;
-        // result is being ignored
-        vkAcquireNextImageKHR(vkDevice, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+        
+        VkResult result = vkAcquireNextImageKHR(vkDevice, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+        if(result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            recreateSwapChain();
+            return;
+        }
+        else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+        {
+            std::cout << result << std::endl;
+            throw std::runtime_error("Failed to acquire swap chain image.");
+        }
+
+        // Only reset the fence if we are submitting work
+        vkResetFences(vkDevice, 1, &inFlightFences[currentFrame]);
+        
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
         recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
@@ -1029,7 +1052,7 @@ private:
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
+        result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
         if(result != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to submit draw command buffer.");
@@ -1045,8 +1068,15 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr; // optional
         
-        // ignoring the result
-        vkQueuePresentKHR(presentQueue, &presentInfo);
+        result = vkQueuePresentKHR(presentQueue, &presentInfo);
+        if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+        {
+            recreateSwapChain();
+        }
+        else if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to present swap chain image.");
+        }
 
         currentFrame++;
         if(currentFrame == MAX_FRAMES_IN_FLIGHT)
@@ -1097,8 +1127,28 @@ private:
         vkDeviceWaitIdle(vkDevice);
     }
 
+    void cleanupSwapChain()
+    {
+        // Destroy framebuffers
+        for(VkFramebuffer & framebuffer : swapChainFramebuffers)
+        {
+            vkDestroyFramebuffer(vkDevice, framebuffer, nullptr);
+        }
+
+        // Destroy the swap chain image views
+        for(VkImageView & imageView : swapChainImageViews)
+        {
+            vkDestroyImageView(vkDevice, imageView, nullptr);
+        }
+
+        // Destroy the swap chain
+        vkDestroySwapchainKHR(vkDevice, swapChain, nullptr);
+    }
+
     void cleanup()
     {
+        cleanupSwapChain();
+
         // Destroy semaphores and fences
         for(size_t i {0}; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
@@ -1119,25 +1169,10 @@ private:
         // Destroy the pipeline layout
         vkDestroyPipelineLayout(vkDevice, pipelineLayout, nullptr);
 
-        // Destroy framebuffers
-        for(VkFramebuffer & framebuffer : swapChainFramebuffers)
-        {
-            vkDestroyFramebuffer(vkDevice, framebuffer, nullptr);
-        }
-
         // Destroy the render pass
         vkDestroyRenderPass(vkDevice, renderPass, nullptr);
 
-        // Destroy the swap chain image views
-        for(VkImageView & imageView : swapChainImageViews)
-        {
-            vkDestroyImageView(vkDevice, imageView, nullptr);
-        }
-
         // Don't need to cleanup the swap chain images
-
-        // Destroy the swap chain
-        vkDestroySwapchainKHR(vkDevice, swapChain, nullptr);
 
         // Don't need to cleanup the graphics queue.
         // it is destroyed when the (logical?) device is destroyed
