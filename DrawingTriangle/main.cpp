@@ -1215,7 +1215,6 @@ private:
                 (memoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags
             )
             {
-
                 return i;
             }
         }
