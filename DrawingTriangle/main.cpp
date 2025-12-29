@@ -1,6 +1,7 @@
 //#include <vulkan/vulkan.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -49,6 +50,13 @@ struct SwapChainSupportDetails
 #include <fstream>
 
 const size_t MAX_FRAMES_IN_FLIGHT {2};
+
+// For vertex buffer
+struct Vertex
+{
+    glm::vec2 pos;
+    glm::vec3 color;
+};
 
 class HelloTriangleApplication
 {
