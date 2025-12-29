@@ -840,13 +840,16 @@ private:
         dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 
-        // No vertex data to load, because it is already in the shaders
+        // Set up thegraphics pipeline to accept vertex data from Vertex struct
+        VkVertexInputBindingDescription bindingDescription {Vertex::getBindingDescription()};
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions {Vertex::getAttributeDescriptions()};
+
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo {};
         vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
-        vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr; // optional
-        vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr; // optional
+        vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+        vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputStateCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputStateCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         // Configure pipeline to draw triangles
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo {};
