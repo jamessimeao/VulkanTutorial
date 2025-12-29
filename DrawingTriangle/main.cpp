@@ -162,6 +162,7 @@ private:
 
     // Vertex buffer
     VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
 
 public:
     void run()
@@ -1201,6 +1202,25 @@ private:
         {
             throw std::runtime_error("Failed to create vertex buffer.");
         }
+
+        VkMemoryRequirements memoryRequirements {};
+        vkGetBufferMemoryRequirements(vkDevice, vertexBuffer, &memoryRequirements);
+
+        VkMemoryAllocateInfo memoryAllocateInfo {};
+        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = 
+            findMemoryType(
+                memoryRequirements.memoryTypeBits,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        result = vkAllocateMemory(vkDevice, &memoryAllocateInfo, nullptr, &vertexBufferMemory);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to allocate memory for vertex buffer.");
+        }
+
+        vkBindBufferMemory(vkDevice, vertexBuffer, vertexBufferMemory, 0);
     }
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
@@ -1258,6 +1278,9 @@ private:
 
         // Destroy the vertex buffer
         vkDestroyBuffer(vkDevice, vertexBuffer, nullptr);
+
+        // Free vertex buffer memory
+        vkFreeMemory(vkDevice, vertexBufferMemory, nullptr);
 
         // Destroy semaphores and fences
         for(size_t i {0}; i < MAX_FRAMES_IN_FLIGHT; i++)
