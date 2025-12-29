@@ -1221,6 +1221,12 @@ private:
         }
 
         vkBindBufferMemory(vkDevice, vertexBuffer, vertexBufferMemory, 0);
+
+        // Send data to vertex buffer
+        void * data;
+        vkMapMemory(vkDevice, vertexBufferMemory, 0, bufferCreateInfo.size, 0, &data);
+        memcpy(data, vertices.data(), (size_t) bufferCreateInfo.size);
+        vkUnmapMemory(vkDevice, vertexBufferMemory);
     }
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
