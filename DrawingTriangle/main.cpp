@@ -2,14 +2,19 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
-
-// Validation layers
 #include <vector>
 #include <cstring> //for strcmp, to compare C strings
+#include <optional>
+#include <set>
+#include <cstdint> // for uint32_t
+#include <limits> // for std::numeric_limits
+#include <algorithm> // for std::clamp
+#include <fstream>
+
+// Validation layers
 const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 #ifdef NDEBUG
@@ -18,7 +23,6 @@ const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"
     const bool enableValidationLayers {true};
 #endif
 
-#include <optional>
 
 struct QueueFamilyIndices
 {
@@ -31,7 +35,6 @@ struct QueueFamilyIndices
     }
 };
 
-#include <set>
 
 // Swap chains
 const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -42,12 +45,6 @@ struct SwapChainSupportDetails
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
 };
-
-#include <cstdint> // for uint32_t
-#include <limits> // for std::numeric_limits
-#include <algorithm> // for std::clamp
-
-#include <fstream>
 
 const size_t MAX_FRAMES_IN_FLIGHT {2};
 
