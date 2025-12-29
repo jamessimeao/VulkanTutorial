@@ -1,4 +1,4 @@
-Vulkan tutorial from Alexander Overvoorde. I'm using this tutorial to learn deeper about computer graphics. I may use Vulkan in the future for some computer graphics or computer vision projects.
+My implementation of the Vulkan tutorial from Alexander Overvoorde. I'm using this tutorial to learn deeper about computer graphics. I may use Vulkan in the future for some computer graphics or computer vision projects.
 
 At this point, I can draw a triangle in Vulkan and have a vertex buffer:
 
