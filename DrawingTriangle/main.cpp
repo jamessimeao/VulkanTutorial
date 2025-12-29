@@ -1062,6 +1062,11 @@ private:
 
         vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        
+        // Bind vertex buffer
+        VkBuffer vertexBuffers[] = {vertexBuffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         // Since we are using dynamic states, we have to set the viewport and scissor before drawing
         VkViewport viewport {};
@@ -1078,13 +1083,13 @@ private:
         scissor.extent = swapChainExtent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
         vkCmdEndRenderPass(commandBuffer);
         result = vkEndCommandBuffer(commandBuffer);
         if(result != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to record command buffer.");
-        } 
+        }
     }
 
     void drawFrame()
