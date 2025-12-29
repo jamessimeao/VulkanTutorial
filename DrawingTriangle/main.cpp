@@ -1203,6 +1203,26 @@ private:
         }
     }
 
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
+    {
+        VkPhysicalDeviceMemoryProperties memoryProperties;
+        vkGetPhysicalDeviceMemoryProperties(vkPhysicalDevice, &memoryProperties);
+
+        for(uint32_t i {0}; i < memoryProperties.memoryTypeCount; i++)
+        {
+            if(
+                typeFilter & (1 << i) &&
+                (memoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags
+            )
+            {
+
+                return i;
+            }
+        }
+
+        throw std::runtime_error("Failed to find suitable memory type.");
+    }
+
     void mainLoop()
     {
         // Keep the window open
