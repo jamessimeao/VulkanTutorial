@@ -160,6 +160,9 @@ private:
     // Frame flight
     uint32_t currentFrame {0};
 
+    // Vertex buffer
+    VkBuffer vertexBuffer;
+
 public:
     void run()
     {
@@ -216,6 +219,8 @@ private:
         createFramebuffers();
         std::cout << "create command pool" << std::endl;
         createCommandPool();
+        std::cout << "create vertex buffer" << std::endl;
+        createVertexBuffer();
         std::cout << "create command buffer" << std::endl;
         createCommandBuffers();
         std::cout << "create sync objects" << std::endl;
@@ -1183,6 +1188,21 @@ private:
         }
     }
 
+    void createVertexBuffer()
+    {
+        VkBufferCreateInfo bufferCreateInfo {};
+        bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferCreateInfo.size = sizeof(vertices[0])*vertices.size(); // space to store all vertices
+        bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VkResult result = vkCreateBuffer(vkDevice, &bufferCreateInfo, nullptr, &vertexBuffer);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create vertex buffer.");
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -1216,6 +1236,9 @@ private:
     void cleanup()
     {
         cleanupSwapChain();
+
+        // Destroy the vertex buffer
+        vkDestroyBuffer(vkDevice, vertexBuffer, nullptr);
 
         // Destroy semaphores and fences
         for(size_t i {0}; i < MAX_FRAMES_IN_FLIGHT; i++)
