@@ -195,6 +195,9 @@ private:
     // Descriptor pool
     VkDescriptorPool descriptorPool;
 
+    // Descriptor sets
+    std::vector<VkDescriptorSet> descriptorSets;
+
 public:
     void run()
     {
@@ -261,6 +264,8 @@ private:
         createUniformBuffers();
         std::cout << "create descriptor pools" << std::endl;
         createDescriptorPool();
+        std::cout << "create descriptor sets" << std::endl;
+        createDescriptorSets();
         std::cout << "create command buffer" << std::endl;
         createCommandBuffers();
         std::cout << "create sync objects" << std::endl;
@@ -1505,6 +1510,25 @@ private:
         if(result != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create descriptor pool.");
+        }
+    }
+
+    void createDescriptorSets()
+    {
+        // make MAX_FRAMES_IN_FLIGHT copies of descriptorSetLayout, stored in a vector
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts = std::vector(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo descriptorSetAllocateInfo {};
+        descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        descriptorSetAllocateInfo.descriptorPool = descriptorPool;
+        descriptorSetAllocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        descriptorSetAllocateInfo.pSetLayouts = descriptorSetLayouts.data();
+
+        descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        VkResult result = vkAllocateDescriptorSets(vkDevice, &descriptorSetAllocateInfo, descriptorSets.data());
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to allocate descriptor sets.");
         }
     }
 
