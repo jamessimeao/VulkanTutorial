@@ -114,7 +114,7 @@ private:
     VkPhysicalDevice vkPhysicalDevice {VK_NULL_HANDLE};
 
     // Queue families
-    QueueFamilyIndices indices;
+    QueueFamilyIndices queueFamilyindices;
 
     // Logical device, to interface with the physical device
     VkDevice vkDevice;
@@ -385,9 +385,9 @@ private:
         std::cout << "-- has geometry shaders: " << supportsGeometryShaders << std::endl;
 
         // Queue families
-        indices = findQueueFamilies(physicalDevice);
+        queueFamilyindices = findQueueFamilies(physicalDevice);
 
-        std::cout << "-- has queue families: " << indices.isComplete() << std::endl;
+        std::cout << "-- has queue families: " << queueFamilyindices.isComplete() << std::endl;
 
         // Swap chains
         bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
@@ -398,7 +398,7 @@ private:
             swapChainAdequate = !swapChainSupportDetails.formats.empty() && !swapChainSupportDetails.presentModes.empty();
         }
 
-        bool isSuitable =  supportsGeometryShaders && indices.isComplete() && swapChainAdequate;
+        bool isSuitable =  supportsGeometryShaders && queueFamilyindices.isComplete() && swapChainAdequate;
 
         std::cout << "maxFramebufferWidth = " << deviceProperties.limits.maxFramebufferWidth << std::endl;
         std::cout << "maxFramebufferHeight = " << deviceProperties.limits.maxFramebufferHeight << std::endl;
@@ -469,7 +469,7 @@ private:
     {
         // Create the queues (graphics and presentation)
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-        std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+        std::set<uint32_t> uniqueQueueFamilies = {queueFamilyindices.graphicsFamily.value(), queueFamilyindices.presentFamily.value()};
         const float queuePriority = 1.0f;
         for(uint32_t queueFamily : uniqueQueueFamilies)
         {
@@ -510,8 +510,8 @@ private:
         }
 
         // Get a queue handle
-        vkGetDeviceQueue(vkDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
-        vkGetDeviceQueue(vkDevice, indices.presentFamily.value(), 0, &presentQueue);
+        vkGetDeviceQueue(vkDevice, queueFamilyindices.graphicsFamily.value(), 0, &graphicsQueue);
+        vkGetDeviceQueue(vkDevice, queueFamilyindices.presentFamily.value(), 0, &presentQueue);
     }
 
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice)
@@ -640,8 +640,8 @@ private:
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-        if(indices.graphicsFamily != indices.presentFamily)
+        uint32_t queueFamilyIndices[] = {queueFamilyindices.graphicsFamily.value(), queueFamilyindices.presentFamily.value()};
+        if(queueFamilyindices.graphicsFamily != queueFamilyindices.presentFamily)
         {
             swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             swapchainCreateInfo.queueFamilyIndexCount = 2;
@@ -1022,7 +1022,7 @@ private:
         VkCommandPoolCreateInfo commandPoolCreateInfo {};
         commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        commandPoolCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+        commandPoolCreateInfo.queueFamilyIndex = queueFamilyindices.graphicsFamily.value();
 
         VkResult result = vkCreateCommandPool(vkDevice, &commandPoolCreateInfo, nullptr, &commandPool);
         if(result != VK_SUCCESS)
