@@ -1208,14 +1208,14 @@ private:
         bufferCreateInfo.usage = usageFlags;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        VkResult result = vkCreateBuffer(vkDevice, &bufferCreateInfo, nullptr, &vertexBuffer);
+        VkResult result = vkCreateBuffer(vkDevice, &bufferCreateInfo, nullptr, &buffer);
         if(result != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create buffer.");
         }
 
         VkMemoryRequirements memoryRequirements {};
-        vkGetBufferMemoryRequirements(vkDevice, vertexBuffer, &memoryRequirements);
+        vkGetBufferMemoryRequirements(vkDevice, buffer, &memoryRequirements);
 
         VkMemoryAllocateInfo memoryAllocateInfo {};
         memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -1225,19 +1225,13 @@ private:
                 memoryRequirements.memoryTypeBits,
                 memoryPropertyFlags);
 
-        result = vkAllocateMemory(vkDevice, &memoryAllocateInfo, nullptr, &vertexBufferMemory);
+        result = vkAllocateMemory(vkDevice, &memoryAllocateInfo, nullptr, &bufferMemory);
         if(result != VK_SUCCESS)
         {
-            throw std::runtime_error("Failed to allocate memory for vertex buffer.");
+            throw std::runtime_error("Failed to allocate memory for buffer.");
         }
 
-        vkBindBufferMemory(vkDevice, vertexBuffer, vertexBufferMemory, 0);
-
-        // Send data to vertex buffer
-        void * data;
-        vkMapMemory(vkDevice, vertexBufferMemory, 0, bufferCreateInfo.size, 0, &data);
-        memcpy(data, vertices.data(), (size_t) bufferCreateInfo.size);
-        vkUnmapMemory(vkDevice, vertexBufferMemory);
+        vkBindBufferMemory(vkDevice, buffer, bufferMemory, 0);
     }
 
     void createVertexBuffer()
@@ -1246,6 +1240,11 @@ private:
         VkBufferUsageFlags usageFlags {VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
         VkMemoryPropertyFlags memoryPropertyFlags {VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
         createBuffer(bufferSize, usageFlags, memoryPropertyFlags, vertexBuffer, vertexBufferMemory);
+        // Send data to vertex buffer
+        void * data;
+        vkMapMemory(vkDevice, vertexBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, vertices.data(), (size_t) bufferSize);
+        vkUnmapMemory(vkDevice, vertexBufferMemory);
     }
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
