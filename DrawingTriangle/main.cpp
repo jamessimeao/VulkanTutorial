@@ -1237,14 +1237,38 @@ private:
     void createVertexBuffer()
     {
         VkDeviceSize bufferSize {sizeof(vertices[0])*vertices.size()}; // space to store all vertices
-        VkBufferUsageFlags usageFlags {VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
-        VkMemoryPropertyFlags memoryPropertyFlags {VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
-        createBuffer(bufferSize, usageFlags, memoryPropertyFlags, vertexBuffer, vertexBufferMemory);
-        // Send data to vertex buffer
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        VkBufferUsageFlags stagingUsageFlags {VK_BUFFER_USAGE_TRANSFER_SRC_BIT};
+        VkMemoryPropertyFlags stagingMemoryPropertyFlags
+        {
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        };
+        createBuffer(
+            bufferSize,
+            stagingUsageFlags,
+            stagingMemoryPropertyFlags,
+            stagingBuffer,
+            stagingBufferMemory
+        );
+
+        // Send vertex data to staging buffer
         void * data;
-        vkMapMemory(vkDevice, vertexBufferMemory, 0, bufferSize, 0, &data);
+        vkMapMemory(vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, vertices.data(), (size_t) bufferSize);
-        vkUnmapMemory(vkDevice, vertexBufferMemory);
+        vkUnmapMemory(vkDevice, stagingBufferMemory);
+
+        VkBufferUsageFlags vertexUsageFlags
+        {
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+        };
+        VkMemoryPropertyFlags vertexMemoryPropertyFlags {VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+        createBuffer(bufferSize, vertexUsageFlags, vertexMemoryPropertyFlags, vertexBuffer, vertexBufferMemory);
+        
+        // cleanup
+        vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
+        vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
     }
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
