@@ -1,7 +1,9 @@
 //#include <vulkan/vulkan.h>
 #define GLFW_INCLUDE_VULKAN
+#define GLM_FORCE_RADIANS // for glm::rotate
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
@@ -14,6 +16,7 @@
 #include <algorithm> // for std::clamp
 #include <fstream>
 #include <array>
+#include <chrono>
 
 // Validation layers
 const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
@@ -1149,6 +1152,37 @@ private:
         }
     }
 
+    void updateUniformBuffer(uint32_t frame)
+    {
+        static auto startTime {std::chrono::high_resolution_clock::now()};
+        auto currentTime {std::chrono::high_resolution_clock::now()};
+        float time {std::chrono::duration<float, std::chrono::seconds::period>(currentTime-startTime).count()};
+
+        UniformBufferObject ubo {};
+        // rotation around Z-axis, proportional to time
+        ubo.model = glm::rotate(
+            glm::mat4(1.0f),
+            time * glm::radians(90.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f)
+        );
+        ubo.view = glm::lookAt(
+            glm::vec3(2.0f, 2.0f, 2.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f)
+        );
+        ubo.proj = glm::perspective(
+            glm::radians(45.0f),
+            swapChainExtent.width / (float) swapChainExtent.height,
+            0.1f,
+            10.0f
+        );
+        // Invert Y axis, because GLM was made for OpenGL
+        ubo.proj[1][1] *= -1;
+
+        // Copy ubo data to uniformBuffersMapped
+        memcpy(uniformBuffersMapped[frame], &ubo, sizeof(ubo));
+    }
+
     void drawFrame()
     {
         vkWaitForFences(vkDevice, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
@@ -1172,6 +1206,8 @@ private:
         
         vkResetCommandBuffer(commandBuffers[currentFrame], 0);
         recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+
+        updateUniformBuffer(currentFrame);
 
         VkSubmitInfo submitInfo {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
