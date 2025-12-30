@@ -258,6 +258,8 @@ private:
         createFramebuffers();
         std::cout << "create command pool" << std::endl;
         createCommandPool();
+        std::cout << "create texture image" << std::endl;
+        createTextureImage();
         std::cout << "create vertex buffer" << std::endl;
         createVertexBuffer();
         std::cout << "create index buffer" << std::endl;
@@ -1565,8 +1567,19 @@ private:
 
             vkUpdateDescriptorSets(vkDevice, 1, &descriptorWrite, 0, nullptr);
         }
+    }
 
+    void createTextureImage()
+    {
+        int textureWidth, textureHeight, textureChannels;
+        // STBI_rgb_alpha forces to load with an alpha channel
+        stbi_uc * pixels {stbi_load("textures/texture.jpg", &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha)};
+        VkDeviceSize imageSize = textureWidth*textureHeight*4; // 4 bytes per pixel
         
+        if(!pixels)
+        {
+            throw std::runtime_error("Failed to load texture image.");
+        }
     }
 
     void mainLoop()
