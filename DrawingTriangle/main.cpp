@@ -1098,7 +1098,9 @@ private:
         scissor.extent = swapChainExtent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+        // Replaced vkCmdDraw with vkCmdDrawIndexed, which draws the vertices from their indices
+        //vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vertexIndices.size()), 1, 0, 0, 0);
         vkCmdEndRenderPass(commandBuffer);
         result = vkEndCommandBuffer(commandBuffer);
         if(result != VK_SUCCESS)
