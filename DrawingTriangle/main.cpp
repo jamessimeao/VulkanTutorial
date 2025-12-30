@@ -1581,6 +1581,9 @@ private:
         // Destroy the pipeline layout
         vkDestroyPipelineLayout(vkDevice, pipelineLayout, nullptr);
 
+        // Destroy descriptor pool
+        vkDestroyDescriptorPool(vkDevice, descriptorPool, nullptr);
+
         // Destroy descriptor set layout
         vkDestroyDescriptorSetLayout(vkDevice, descriptorSetLayout, nullptr);
 
