@@ -147,6 +147,9 @@ private:
     // Render pass
     VkRenderPass renderPass;
 
+    // Descriptor set layout
+    VkDescriptorSetLayout descriptorSetLayout;
+
     // Pipeline layout
     VkPipelineLayout pipelineLayout;
 
@@ -231,6 +234,8 @@ private:
         createImageViews();
         std::cout << "create render pass" << std::endl;
         createRenderPass();
+        std::cout << "create descriptor set layout" << std::endl;
+        createDescriptotSetLayout();
         std::cout << "create graphics pipeline" << std::endl;
         createGraphicsPipeline();
         std::cout << "create framebuffers" << std::endl;
@@ -824,6 +829,27 @@ private:
             throw std::runtime_error("Failed to create render pass.");
         }
     }
+
+    void createDescriptotSetLayout()
+    {
+        VkDescriptorSetLayoutBinding uboLayoutBinding {};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.pImmutableSamplers = nullptr; // optional
+        
+        VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {};
+        descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        descriptorSetLayoutCreateInfo.bindingCount = 1;
+        descriptorSetLayoutCreateInfo.pBindings = &uboLayoutBinding;
+
+        VkResult result = vkCreateDescriptorSetLayout(vkDevice, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create descriptor set layout.");
+        }
+    }
     
     void createGraphicsPipeline()
     {
@@ -955,8 +981,8 @@ private:
         // Pipeline layout
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {};
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutCreateInfo.setLayoutCount = 0; // optional
-        pipelineLayoutCreateInfo.pSetLayouts = nullptr; // optional
+        pipelineLayoutCreateInfo.setLayoutCount = 1;
+        pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0; // optional
         pipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // optional
 
@@ -1459,6 +1485,9 @@ private:
 
         // Destroy the pipeline layout
         vkDestroyPipelineLayout(vkDevice, pipelineLayout, nullptr);
+
+        // Destroy descriptor set layout
+        vkDestroyDescriptorSetLayout(vkDevice, descriptorSetLayout, nullptr);
 
         // Destroy the render pass
         vkDestroyRenderPass(vkDevice, renderPass, nullptr);
