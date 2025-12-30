@@ -192,6 +192,9 @@ private:
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void *> uniformBuffersMapped;
 
+    // Descriptor pool
+    VkDescriptorPool descriptorPool;
+
 public:
     void run()
     {
@@ -256,6 +259,8 @@ private:
         createIndexBuffer();
         std::cout << "create uniform buffers" << std::endl;
         createUniformBuffers();
+        std::cout << "create descriptor pools" << std::endl;
+        createDescriptorPool();
         std::cout << "create command buffer" << std::endl;
         createCommandBuffers();
         std::cout << "create sync objects" << std::endl;
@@ -1481,6 +1486,25 @@ private:
             createBuffer(bufferSize, usageFlags, memoryPropertyFlags, uniformBuffers[i], uniformBuffersMemory[i]);
 
             vkMapMemory(vkDevice, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+        }
+    }
+
+    void createDescriptorPool()
+    {
+        VkDescriptorPoolSize descriptorPoolSize {};
+        descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+        VkDescriptorPoolCreateInfo descriptorPoolCreateInfo {};
+        descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        descriptorPoolCreateInfo.poolSizeCount = 1;
+        descriptorPoolCreateInfo.pPoolSizes = &descriptorPoolSize;
+        descriptorPoolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+        VkResult result = vkCreateDescriptorPool(vkDevice, &descriptorPoolCreateInfo, nullptr, &descriptorPool);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create descriptor pool.");
         }
     }
 
