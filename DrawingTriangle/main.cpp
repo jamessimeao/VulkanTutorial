@@ -1530,6 +1530,29 @@ private:
         {
             throw std::runtime_error("Failed to allocate descriptor sets.");
         }
+
+        for(size_t i {0}; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            VkDescriptorBufferInfo descriptorBufferInfo {};
+            descriptorBufferInfo.buffer = uniformBuffers[i];
+            descriptorBufferInfo.offset = 0;
+            descriptorBufferInfo.range = sizeof(UniformBufferObject);
+
+            VkWriteDescriptorSet descriptorWrite {};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = descriptorSets[i];
+            descriptorWrite.dstBinding = 0;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &descriptorBufferInfo;
+            descriptorWrite.pImageInfo = nullptr; // optional
+            descriptorWrite.pTexelBufferView = nullptr; // optional
+
+            vkUpdateDescriptorSets(vkDevice, 1, &descriptorWrite, 0, nullptr);
+        }
+
+        
     }
 
     void mainLoop()
