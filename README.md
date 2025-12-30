@@ -1,5 +1,7 @@
 My implementation of the Vulkan tutorial from Alexander Overvoorde. I'm using this tutorial to learn deeper about computer graphics. I may use Vulkan in the future for some computer graphics or computer vision projects.
 
-At this point, I can draw a triangle in Vulkan and have a vertex buffer:
+At this point, I can draw triangles in Vulkan. Two triangles form a rectangle:
 
-<img width="805" height="625" alt="vulkan" src="https://github.com/user-attachments/assets/87da1646-494e-45da-afa9-b1f24cde1b21" />
+<img width="805" height="629" alt="rectangle" src="https://github.com/user-attachments/assets/6065c08f-0264-4214-b7de-ecc15cac73df" />
+
+This used a vertex buffer and an index buffer.
