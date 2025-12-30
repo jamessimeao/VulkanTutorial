@@ -170,6 +170,10 @@ private:
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
 
+    // Index buffer
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
+
 public:
     void run()
     {
@@ -228,6 +232,8 @@ private:
         createCommandPool();
         std::cout << "create vertex buffer" << std::endl;
         createVertexBuffer();
+        std::cout << "create index buffer" << std::endl;
+        createIndexBuffer();
         std::cout << "create command buffer" << std::endl;
         createCommandBuffers();
         std::cout << "create sync objects" << std::endl;
@@ -1318,6 +1324,45 @@ private:
         vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
     }
 
+    void createIndexBuffer()
+    {
+        VkDeviceSize bufferSize {sizeof(vertexIndices[0])*vertexIndices.size()};
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        VkBufferUsageFlags stagingUsageFlags {VK_BUFFER_USAGE_TRANSFER_SRC_BIT};
+        VkMemoryPropertyFlags stagingMemoryPropertyFlags
+        {
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        };
+        createBuffer(
+            bufferSize,
+            stagingUsageFlags,
+            stagingMemoryPropertyFlags,
+            stagingBuffer,
+            stagingBufferMemory
+        );
+
+        // Send vertex index data to staging buffer
+        void * data;
+        vkMapMemory(vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, vertexIndices.data(), (size_t) bufferSize);
+        vkUnmapMemory(vkDevice, stagingBufferMemory);
+
+        VkBufferUsageFlags indexBufferUsageFlags
+        {
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+        };
+        VkMemoryPropertyFlags indexBufferMemoryPropertyFlags {VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+        createBuffer(bufferSize, indexBufferUsageFlags, indexBufferMemoryPropertyFlags, indexBuffer, indexBufferMemory);
+        
+        copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+
+        // cleanup
+        vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
+        vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
+    }
+
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
     {
         VkPhysicalDeviceMemoryProperties memoryProperties;
@@ -1370,6 +1415,12 @@ private:
     void cleanup()
     {
         cleanupSwapChain();
+
+        // Destroy index buffer
+        vkDestroyBuffer(vkDevice, indexBuffer, nullptr);
+
+        // Free index buffer memory
+        vkFreeMemory(vkDevice, indexBufferMemory, nullptr);
 
         // Destroy the vertex buffer
         vkDestroyBuffer(vkDevice, vertexBuffer, nullptr);
