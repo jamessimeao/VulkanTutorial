@@ -1305,6 +1305,8 @@ private:
         VkMemoryPropertyFlags vertexMemoryPropertyFlags {VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
         createBuffer(bufferSize, vertexUsageFlags, vertexMemoryPropertyFlags, vertexBuffer, vertexBufferMemory);
         
+        copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
         // cleanup
         vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
         vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
