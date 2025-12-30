@@ -184,6 +184,11 @@ private:
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
 
+    // Uniform buffers
+    std::vector<VkBuffer> uniformBuffers;
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
+    std::vector<void *> uniformBuffersMapped;
+
 public:
     void run()
     {
@@ -246,6 +251,8 @@ private:
         createVertexBuffer();
         std::cout << "create index buffer" << std::endl;
         createIndexBuffer();
+        std::cout << "create uniform buffers" << std::endl;
+        createUniformBuffers();
         std::cout << "create command buffer" << std::endl;
         createCommandBuffers();
         std::cout << "create sync objects" << std::endl;
@@ -1420,6 +1427,27 @@ private:
         throw std::runtime_error("Failed to find suitable memory type.");
     }
 
+    void createUniformBuffers()
+    {
+        uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+        
+        const VkDeviceSize bufferSize {sizeof(UniformBufferObject)};
+        const VkBufferUsageFlags usageFlags {VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT};
+        const VkMemoryPropertyFlags memoryPropertyFlags
+        {
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        };
+
+        for(size_t i {0}; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            createBuffer(bufferSize, usageFlags, memoryPropertyFlags, uniformBuffers[i], uniformBuffersMemory[i]);
+
+            vkMapMemory(vkDevice, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -1453,6 +1481,13 @@ private:
     void cleanup()
     {
         cleanupSwapChain();
+
+        // Destroy uniform buffer objects, free its memories
+        for(size_t i {0}; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            vkDestroyBuffer(vkDevice, uniformBuffers[i], nullptr);
+            vkFreeMemory(vkDevice, uniformBuffersMemory[i], nullptr);
+        }
 
         // Destroy index buffer
         vkDestroyBuffer(vkDevice, indexBuffer, nullptr);
