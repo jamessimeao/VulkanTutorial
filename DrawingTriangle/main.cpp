@@ -1194,18 +1194,24 @@ private:
         }
     }
 
-    void createVertexBuffer()
+    void createBuffer(
+        VkDeviceSize bufferSize,
+        VkBufferUsageFlags usageFlags,
+        VkMemoryPropertyFlags memoryPropertyFlags,
+        VkBuffer & buffer,
+        VkDeviceMemory & bufferMemory
+    )
     {
         VkBufferCreateInfo bufferCreateInfo {};
         bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferCreateInfo.size = sizeof(vertices[0])*vertices.size(); // space to store all vertices
-        bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        bufferCreateInfo.size = bufferSize;
+        bufferCreateInfo.usage = usageFlags;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         VkResult result = vkCreateBuffer(vkDevice, &bufferCreateInfo, nullptr, &vertexBuffer);
         if(result != VK_SUCCESS)
         {
-            throw std::runtime_error("Failed to create vertex buffer.");
+            throw std::runtime_error("Failed to create buffer.");
         }
 
         VkMemoryRequirements memoryRequirements {};
@@ -1217,7 +1223,7 @@ private:
         memoryAllocateInfo.memoryTypeIndex = 
             findMemoryType(
                 memoryRequirements.memoryTypeBits,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                memoryPropertyFlags);
 
         result = vkAllocateMemory(vkDevice, &memoryAllocateInfo, nullptr, &vertexBufferMemory);
         if(result != VK_SUCCESS)
@@ -1232,6 +1238,14 @@ private:
         vkMapMemory(vkDevice, vertexBufferMemory, 0, bufferCreateInfo.size, 0, &data);
         memcpy(data, vertices.data(), (size_t) bufferCreateInfo.size);
         vkUnmapMemory(vkDevice, vertexBufferMemory);
+    }
+
+    void createVertexBuffer()
+    {
+        VkDeviceSize bufferSize {sizeof(vertices[0])*vertices.size()}; // space to store all vertices
+        VkBufferUsageFlags usageFlags {VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
+        VkMemoryPropertyFlags memoryPropertyFlags {VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
+        createBuffer(bufferSize, usageFlags, memoryPropertyFlags, vertexBuffer, vertexBufferMemory);
     }
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags)
