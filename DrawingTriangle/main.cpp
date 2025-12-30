@@ -640,12 +640,12 @@ private:
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        uint32_t queueFamilyIndices[] = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value()};
+        uint32_t queueFamilyIndicesAsArray[] = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value()};
         if(queueFamilyIndices.graphicsFamily != queueFamilyIndices.presentFamily)
         {
             swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
             swapchainCreateInfo.queueFamilyIndexCount = 2;
-            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndicesAsArray;
         }
         else
         {
