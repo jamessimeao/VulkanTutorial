@@ -1580,6 +1580,26 @@ private:
         {
             throw std::runtime_error("Failed to load texture image.");
         }
+
+        // Create a staging buffer to receive the image data
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        VkBufferUsageFlags usageFlags {VK_BUFFER_USAGE_TRANSFER_SRC_BIT};
+        VkMemoryPropertyFlags memoryPropertyFlags {VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
+        createBuffer(imageSize, usageFlags, memoryPropertyFlags, stagingBuffer, stagingBufferMemory);
+
+        // Copy the image data to the staging buffer
+        void * data;
+        vkMapMemory(vkDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+        memcpy(data, pixels, static_cast<size_t>(imageSize));
+        vkUnmapMemory(vkDevice, stagingBufferMemory);
+
+        // cleanup
+        stbi_image_free(pixels);
+
+        // cleanup
+        vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
+        vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
     }
 
     void mainLoop()
