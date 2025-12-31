@@ -1569,6 +1569,56 @@ private:
         }
     }
 
+    void createImage(
+        uint32_t width,
+        uint32_t height,
+        VkFormat format,
+        VkImageTiling tiling,
+        VkImageUsageFlags usageFlags,
+        VkMemoryPropertyFlags memoryPropertyFlags,
+        VkImage & image,
+        VkDeviceMemory & imageMemory
+    )
+    {
+        VkImageCreateInfo imageCreateInfo {};
+        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageCreateInfo.extent.width = width;
+        imageCreateInfo.extent.height = height;
+        imageCreateInfo.extent.depth = 1;
+        imageCreateInfo.mipLevels = 1;
+        imageCreateInfo.arrayLayers = 1;
+        imageCreateInfo.format = format;
+        imageCreateInfo.tiling = tiling;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageCreateInfo.usage = usageFlags;
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageCreateInfo.flags = 0; // optional
+
+        VkResult result = vkCreateImage(vkDevice, &imageCreateInfo, nullptr, &image);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create image.");
+        }
+
+        VkMemoryRequirements memoryRequirements;
+        vkGetImageMemoryRequirements(vkDevice, image, &memoryRequirements);
+
+        VkMemoryAllocateInfo memoryAllocateInfo {};
+        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, memoryPropertyFlags);
+
+        result = vkAllocateMemory(vkDevice, &memoryAllocateInfo, nullptr, &imageMemory);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to alloc image memory.");
+        }
+
+        vkBindImageMemory(vkDevice, image, imageMemory, 0);
+    }
+
     void createTextureImage()
     {
         int textureWidth, textureHeight, textureChannels;
