@@ -1357,7 +1357,7 @@ private:
         vkBindBufferMemory(vkDevice, buffer, bufferMemory, 0);
     }
 
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+    VkCommandBuffer beginSingleTimeCommands()
     {
         VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1376,13 +1376,12 @@ private:
         // ignoring result
         vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 
-        VkBufferCopy copyRegion {};
-        copyRegion.srcOffset = 0; // optional
-        copyRegion.dstOffset = 0; // optional
-        copyRegion.size = size;
+        return commandBuffer;
+    }
 
-        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer)
+    {
+        // ignoring result
         vkEndCommandBuffer(commandBuffer);
 
         VkSubmitInfo submitInfo {};
@@ -1390,10 +1389,24 @@ private:
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
+        // ignoring results
         vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
         vkQueueWaitIdle(graphicsQueue);
-
         vkFreeCommandBuffers(vkDevice, commandPool, 1, &commandBuffer);
+    }
+
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+    {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+        VkBufferCopy copyRegion {};
+        copyRegion.srcOffset = 0; // optional
+        copyRegion.dstOffset = 0; // optional
+        copyRegion.size = size;
+
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        endSingleTimeCommands(commandBuffer);
     }
 
     void createVertexBuffer()
