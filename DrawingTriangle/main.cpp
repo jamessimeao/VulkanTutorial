@@ -200,6 +200,10 @@ private:
     // Descriptor sets
     std::vector<VkDescriptorSet> descriptorSets;
 
+    // Texture
+    VkImage textureImage;
+    VkDeviceMemory textureImageMemory;
+
 public:
     void run()
     {
@@ -1647,6 +1651,17 @@ private:
         // cleanup
         stbi_image_free(pixels);
 
+        createImage(
+            textureWidth,
+            textureHeight,
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            textureImage,
+            textureImageMemory
+        );
+
         // cleanup
         vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
         vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
@@ -1692,6 +1707,12 @@ private:
             vkDestroyBuffer(vkDevice, uniformBuffers[i], nullptr);
             vkFreeMemory(vkDevice, uniformBuffersMemory[i], nullptr);
         }
+
+        // Destroy texture image
+        vkDestroyImage(vkDevice, textureImage, nullptr);
+
+        // Destroy texture image memory
+        vkFreeMemory(vkDevice, textureImageMemory, nullptr);
 
         // Destroy index buffer
         vkDestroyBuffer(vkDevice, indexBuffer, nullptr);
