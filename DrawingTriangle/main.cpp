@@ -1747,6 +1747,29 @@ private:
             textureImageMemory
         );
 
+        // prepare image to copy from staging buffer to image
+        transitionImageLayout(
+            textureImage,
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+        );
+
+        copyBufferToImage(
+            stagingBuffer,
+            textureImage,
+            static_cast<uint32_t>(textureWidth),
+            static_cast<uint32_t>(textureHeight)
+        );
+
+        // prepare image for sampling
+        transitionImageLayout(
+            textureImage,
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        );
+
         // cleanup
         vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
         vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
