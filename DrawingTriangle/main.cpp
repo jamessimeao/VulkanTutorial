@@ -203,6 +203,7 @@ private:
     // Texture
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
+    VkImageView textureImageView;
 
 public:
     void run()
@@ -264,6 +265,8 @@ private:
         createCommandPool();
         std::cout << "create texture image" << std::endl;
         createTextureImage();
+        std::cout << "create texture image view" << std::endl;
+        createTextureImageView();
         std::cout << "create vertex buffer" << std::endl;
         createVertexBuffer();
         std::cout << "create index buffer" << std::endl;
@@ -1804,6 +1807,11 @@ private:
         vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
     }
 
+    void createTextureImageView()
+    {
+        textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -1844,6 +1852,9 @@ private:
             vkDestroyBuffer(vkDevice, uniformBuffers[i], nullptr);
             vkFreeMemory(vkDevice, uniformBuffersMemory[i], nullptr);
         }
+
+        // Destroy texture image view
+        vkDestroyImageView(vkDevice, textureImageView, nullptr);
 
         // Destroy texture image
         vkDestroyImage(vkDevice, textureImage, nullptr);
