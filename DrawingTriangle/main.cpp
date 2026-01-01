@@ -1794,6 +1794,36 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
+    VkFormat findSupportedFormat(
+        const std::vector<VkFormat> & candidateFormats,
+        VkImageTiling imageTiling,
+        VkFormatFeatureFlags formatFeatureFlags
+    )
+    {
+        for(VkFormat format : candidateFormats)
+        {
+            VkFormatProperties formatProperties;
+            vkGetPhysicalDeviceFormatProperties(vkPhysicalDevice, format, &formatProperties);
+
+            if(
+                imageTiling == VK_IMAGE_TILING_LINEAR &&
+                (formatProperties.linearTilingFeatures & formatFeatureFlags) == formatFeatureFlags
+            )
+            {
+                return format;
+            }
+            else if (
+                imageTiling == VK_IMAGE_TILING_OPTIMAL &&
+                (formatProperties.optimalTilingFeatures & formatFeatureFlags) == formatFeatureFlags
+            )
+            {
+                return format;
+            }
+        }
+
+        throw std::runtime_error("Failed to find supported format.");
+    }
+
     void createTextureImage()
     {
         int textureWidth, textureHeight, textureChannels;
