@@ -1091,6 +1091,19 @@ private:
             throw std::runtime_error("Failed to create pipeline layout.");
         }
 
+        // For depth buffer
+        VkPipelineDepthStencilStateCreateInfo depthStencil {};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.minDepthBounds = 0.0f; // optional
+        depthStencil.maxDepthBounds = 1.0f; // optional
+        depthStencil.stencilTestEnable = VK_FALSE;
+        depthStencil.front = {}; // optional
+        depthStencil.back = {}; // optional
+
         // Create the graphics pipeline
 
         VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
@@ -1102,7 +1115,7 @@ private:
         graphicsPipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
         graphicsPipelineCreateInfo.pRasterizationState = &rasterizationCreateInfo;
         graphicsPipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
-        graphicsPipelineCreateInfo.pDepthStencilState = nullptr; // optional
+        graphicsPipelineCreateInfo.pDepthStencilState = &depthStencil;
         graphicsPipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
         graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
         graphicsPipelineCreateInfo.layout = pipelineLayout;
