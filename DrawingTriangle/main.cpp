@@ -257,7 +257,7 @@ private:
         std::cout << "create render pass" << std::endl;
         createRenderPass();
         std::cout << "create descriptor set layout" << std::endl;
-        createDescriptotSetLayout();
+        createDescriptorSetLayout();
         std::cout << "create graphics pipeline" << std::endl;
         createGraphicsPipeline();
         std::cout << "create framebuffers" << std::endl;
@@ -875,7 +875,7 @@ private:
         }
     }
 
-    void createDescriptotSetLayout()
+    void createDescriptorSetLayout()
     {
         VkDescriptorSetLayoutBinding uboLayoutBinding {};
         uboLayoutBinding.binding = 0;
