@@ -1874,7 +1874,7 @@ private:
 
         samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
         samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerCreateInfo.compareEnable = VK_TRUE;
+        samplerCreateInfo.compareEnable = VK_FALSE;
         samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
         samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
         samplerCreateInfo.mipLodBias = 0.0f;
