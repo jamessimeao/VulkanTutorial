@@ -854,38 +854,56 @@ private:
 
     void createRenderPass()
     {
-        VkAttachmentDescription attachmentDescription {};
-        attachmentDescription.format = swapChainImageFormat;
-        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT; // we're not using multisampling
-        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        VkAttachmentDescription colorAttachmentDescription {};
+        colorAttachmentDescription.format = swapChainImageFormat;
+        colorAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT; // we're not using multisampling
+        colorAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentReference {};
         colorAttachmentReference.attachment = 0;
         colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+        // For depth buffer
+        VkAttachmentDescription depthAttachmentDescription {};
+        depthAttachmentDescription.format = findDepthFormat();
+        depthAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference depthAttachmentReference {};
+        depthAttachmentReference.attachment = 1;
+        depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        
+        // Subpass
         VkSubpassDescription subpassDescription {};
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpassDescription.colorAttachmentCount = 1;
         subpassDescription.pColorAttachments = &colorAttachmentReference;
+        subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
 
         // Subpass dependencies
         VkSubpassDependency subpassDependency {};
         subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         subpassDependency.dstSubpass = 0;
-        subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        subpassDependency.srcAccessMask = 0;
-        subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
+        std::array<VkAttachmentDescription, 2> attachments {colorAttachmentDescription, depthAttachmentDescription};
         VkRenderPassCreateInfo renderPassCreateInfo {};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassCreateInfo.attachmentCount = 1;
-        renderPassCreateInfo.pAttachments = &attachmentDescription;
+        renderPassCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassCreateInfo.pAttachments = attachments.data();
         renderPassCreateInfo.subpassCount = 1;
         renderPassCreateInfo.pSubpasses = &subpassDescription;
         renderPassCreateInfo.dependencyCount = 1;
