@@ -204,6 +204,7 @@ private:
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
     VkImageView textureImageView;
+    VkSampler textureSampler;
 
 public:
     void run()
@@ -267,6 +268,8 @@ private:
         createTextureImage();
         std::cout << "create texture image view" << std::endl;
         createTextureImageView();
+        std::cout << "create texture sampler" << std::endl;
+        createTextureSampler();
         std::cout << "create vertex buffer" << std::endl;
         createVertexBuffer();
         std::cout << "create index buffer" << std::endl;
@@ -414,14 +417,14 @@ private:
 
     bool isDeviceSuitable(VkPhysicalDevice physicalDevice)
     {
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-        VkPhysicalDeviceFeatures deviceFeatures;
-        vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+        VkPhysicalDeviceFeatures physicalDeviceFeatures;
+        vkGetPhysicalDeviceFeatures(physicalDevice, &physicalDeviceFeatures);
 
         //bool isDiscreteGPU = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-        bool supportsGeometryShaders = deviceFeatures.geometryShader;
+        bool supportsGeometryShaders = physicalDeviceFeatures.geometryShader;
         
         std::cout << std::boolalpha;
         //std::cout << "-- is discrete gpu: " << isDiscreteGPU << std::endl;
@@ -441,10 +444,13 @@ private:
             swapChainAdequate = !swapChainSupportDetails.formats.empty() && !swapChainSupportDetails.presentModes.empty();
         }
 
-        bool isSuitable =  supportsGeometryShaders && queueFamilyIndices.isComplete() && swapChainAdequate;
+        bool isSuitable =  supportsGeometryShaders &&
+                            queueFamilyIndices.isComplete() &&
+                            swapChainAdequate && 
+                            physicalDeviceFeatures.samplerAnisotropy;
 
-        std::cout << "maxFramebufferWidth = " << deviceProperties.limits.maxFramebufferWidth << std::endl;
-        std::cout << "maxFramebufferHeight = " << deviceProperties.limits.maxFramebufferHeight << std::endl;
+        std::cout << "maxFramebufferWidth = " << physicalDeviceProperties.limits.maxFramebufferWidth << std::endl;
+        std::cout << "maxFramebufferHeight = " << physicalDeviceProperties.limits.maxFramebufferHeight << std::endl;
 
         return isSuitable;
     }
@@ -527,6 +533,7 @@ private:
         
         // again?
         VkPhysicalDeviceFeatures deviceFeatures{};
+        deviceFeatures.samplerAnisotropy = VK_TRUE;
 
         VkDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -1812,6 +1819,38 @@ private:
         textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
     }
 
+    void createTextureSampler()
+    {
+        VkSamplerCreateInfo samplerCreateInfo {};
+        samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+        samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+        samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(vkPhysicalDevice, &physicalDeviceProperties);
+
+        samplerCreateInfo.anisotropyEnable = VK_TRUE;
+        samplerCreateInfo.maxAnisotropy = physicalDeviceProperties.limits.maxSamplerAnisotropy;
+
+        samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerCreateInfo.compareEnable = VK_TRUE;
+        samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerCreateInfo.mipLodBias = 0.0f;
+        samplerCreateInfo.minLod = 0.0f;
+        samplerCreateInfo.maxLod = 0.0f;
+
+        VkResult result = vkCreateSampler(vkDevice, &samplerCreateInfo, nullptr, &textureSampler);
+        if(result != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create texture sampler.");
+        }
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -1852,6 +1891,9 @@ private:
             vkDestroyBuffer(vkDevice, uniformBuffers[i], nullptr);
             vkFreeMemory(vkDevice, uniformBuffersMemory[i], nullptr);
         }
+
+        // Destroy texture sampler
+        vkDestroySampler(vkDevice, textureSampler, nullptr);
 
         // Destroy texture image view
         vkDestroyImageView(vkDevice, textureImageView, nullptr);
