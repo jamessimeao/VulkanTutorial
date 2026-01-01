@@ -1128,15 +1128,16 @@ private:
         // create a framebuffer for each image view
         for(size_t i {0}; i < swapChainFramebuffers.size(); i++)
         {
-            VkImageView attachments[] {
-                swapChainImageViews[i]
+            std::array<VkImageView, 2> attachments {
+                swapChainImageViews[i],
+                depthImageView
             };
 
             VkFramebufferCreateInfo framebufferCreateInfo {};
             framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferCreateInfo.renderPass = renderPass;
-            framebufferCreateInfo.attachmentCount = 1;
-            framebufferCreateInfo.pAttachments = attachments;
+            framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            framebufferCreateInfo.pAttachments = attachments.data();
             framebufferCreateInfo.width = swapChainExtent.width;
             framebufferCreateInfo.height = swapChainExtent.height;
             framebufferCreateInfo.layers = 1;
