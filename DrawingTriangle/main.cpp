@@ -222,6 +222,11 @@ private:
     VkImageView textureImageView;
     VkSampler textureSampler;
 
+    // Depth
+    VkImage depthImage;
+    VkDeviceMemory depthImageMemory;
+    VkImageView depthImageView;
+
 public:
     void run()
     {
@@ -280,6 +285,8 @@ private:
         createFramebuffers();
         std::cout << "create command pool" << std::endl;
         createCommandPool();
+        std::cout << "create depth resources" << std::endl;
+        createDepthResources();
         std::cout << "create texture image" << std::endl;
         createTextureImage();
         std::cout << "create texture image view" << std::endl;
@@ -1843,6 +1850,23 @@ private:
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
     }
+    
+    void createDepthResources()
+    {
+        VkFormat depthFormat = findDepthFormat();
+
+        createImage(
+            swapChainExtent.width,
+            swapChainExtent.height,
+            depthFormat,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            depthImage,
+            depthImageMemory
+        );
+        depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+    }
 
     void createTextureImage()
     {
@@ -1988,6 +2012,11 @@ private:
             vkDestroyBuffer(vkDevice, uniformBuffers[i], nullptr);
             vkFreeMemory(vkDevice, uniformBuffersMemory[i], nullptr);
         }
+
+        // Destroy depth buffer
+        vkFreeMemory(vkDevice, depthImageMemory, nullptr);
+        vkDestroyImageView(vkDevice, depthImageView, nullptr);
+        vkDestroyImage(vkDevice, depthImage, nullptr);
 
         // Destroy texture sampler
         vkDestroySampler(vkDevice, textureSampler, nullptr);
