@@ -9,6 +9,5 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    // output a red color
     outColor = vec4(textureCoord, 0.0, 1.0);
 }
