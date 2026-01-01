@@ -281,12 +281,12 @@ private:
         createDescriptorSetLayout();
         std::cout << "create graphics pipeline" << std::endl;
         createGraphicsPipeline();
+        std::cout << "create depth resources" << std::endl;
+        createDepthResources();
         std::cout << "create framebuffers" << std::endl;
         createFramebuffers();
         std::cout << "create command pool" << std::endl;
         createCommandPool();
-        std::cout << "create depth resources" << std::endl;
-        createDepthResources();
         std::cout << "create texture image" << std::endl;
         createTextureImage();
         std::cout << "create texture image view" << std::endl;
