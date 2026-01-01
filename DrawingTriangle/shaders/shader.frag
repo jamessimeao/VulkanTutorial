@@ -7,7 +7,10 @@ layout(location = 1) in vec2 textureCoord;
 // out declares the variable as the one for output of the fragment shader.
 layout(location = 0) out vec4 outColor;
 
+layout(binding = 1) uniform sampler2D textureSampler;
+
 void main()
 {
-    outColor = vec4(textureCoord, 0.0, 1.0);
+    //outColor = vec4(textureCoord, 0.0, 1.0); // render texture coordinates as color
+    outColor = texture(textureSampler, textureCoord); // render texture
 }
