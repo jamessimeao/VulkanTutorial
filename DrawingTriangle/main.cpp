@@ -237,6 +237,7 @@ private:
     VkDeviceMemory textureImageMemory;
     VkImageView textureImageView;
     VkSampler textureSampler;
+    uint32_t mipLevels;
 
     // Depth
     VkImage depthImage;
@@ -791,7 +792,7 @@ private:
         createFramebuffers();
     }
     
-    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
     {
         VkImageViewCreateInfo imageViewCreateInfo {};
         imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -804,7 +805,7 @@ private:
         imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewCreateInfo.subresourceRange.aspectMask = aspectFlags;
         imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-        imageViewCreateInfo.subresourceRange.levelCount = 1;
+        imageViewCreateInfo.subresourceRange.levelCount = mipLevels;
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
@@ -824,7 +825,7 @@ private:
         for(size_t i {0}; i < swapChainImages.size(); i++)
         {
             std::cout << "-- creating image view " << i << std::endl;
-            swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+            swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
         }
     }
 
@@ -1713,6 +1714,7 @@ private:
     void createImage(
         uint32_t width,
         uint32_t height,
+        uint32_t mipLevels,
         VkFormat format,
         VkImageTiling tiling,
         VkImageUsageFlags usageFlags,
@@ -1727,7 +1729,7 @@ private:
         imageCreateInfo.extent.width = width;
         imageCreateInfo.extent.height = height;
         imageCreateInfo.extent.depth = 1;
-        imageCreateInfo.mipLevels = 1;
+        imageCreateInfo.mipLevels = mipLevels;
         imageCreateInfo.arrayLayers = 1;
         imageCreateInfo.format = format;
         imageCreateInfo.tiling = tiling;
@@ -1764,7 +1766,9 @@ private:
         VkImage image,
         VkFormat format,
         VkImageLayout oldLayout,
-        VkImageLayout newLayout)
+        VkImageLayout newLayout,
+        uint32_t mipLevels
+    )
     {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
@@ -1780,7 +1784,7 @@ private:
         barrier.image = image;
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.levelCount = mipLevels;
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = 1;
 
@@ -1911,6 +1915,7 @@ private:
         createImage(
             swapChainExtent.width,
             swapChainExtent.height,
+            1,
             depthFormat,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -1918,7 +1923,7 @@ private:
             depthImage,
             depthImageMemory
         );
-        depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+        depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
     }
 
     void createTextureImage()
@@ -1926,12 +1931,13 @@ private:
         int textureWidth, textureHeight, textureChannels;
         // STBI_rgb_alpha forces to load with an alpha channel
         stbi_uc * pixels {stbi_load(TEXTURE_PATH.c_str(), &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha)};
-        VkDeviceSize imageSize = textureWidth*textureHeight*4; // 4 bytes per pixel
-        
         if(!pixels)
         {
             throw std::runtime_error("Failed to load texture image.");
         }
+        
+        VkDeviceSize imageSize = textureWidth*textureHeight*4; // 4 bytes per pixel
+        mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(textureWidth, textureHeight)))) + 1;
 
         // Create a staging buffer to receive the image data
         VkBuffer stagingBuffer;
@@ -1952,6 +1958,7 @@ private:
         createImage(
             textureWidth,
             textureHeight,
+            mipLevels,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -1965,7 +1972,8 @@ private:
             textureImage,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            mipLevels
         );
 
         copyBufferToImage(
@@ -1980,7 +1988,8 @@ private:
             textureImage,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            mipLevels
         );
 
         // cleanup
@@ -1990,7 +1999,7 @@ private:
 
     void createTextureImageView()
     {
-        textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
     }
 
     void createTextureSampler()
