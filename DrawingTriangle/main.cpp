@@ -887,13 +887,13 @@ private:
     {
         VkAttachmentDescription colorAttachmentDescription {};
         colorAttachmentDescription.format = swapChainImageFormat;
-        colorAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT; // we're not using multisampling
+        colorAttachmentDescription.samples = msaaSamples;
         colorAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkAttachmentReference colorAttachmentReference {};
         colorAttachmentReference.attachment = 0;
@@ -902,7 +902,7 @@ private:
         // For depth buffer
         VkAttachmentDescription depthAttachmentDescription {};
         depthAttachmentDescription.format = findDepthFormat();
-        depthAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachmentDescription.samples = msaaSamples;
         depthAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -913,6 +913,21 @@ private:
         VkAttachmentReference depthAttachmentReference {};
         depthAttachmentReference.attachment = 1;
         depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        // For MSAA
+        VkAttachmentDescription colorAttachmentResolve {};
+        colorAttachmentResolve.format = swapChainImageFormat;
+        colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference colorAttachmentResolveRef {};
+        colorAttachmentResolveRef.attachment = 2;
+        colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         
         // Subpass
         VkSubpassDescription subpassDescription {};
@@ -920,17 +935,23 @@ private:
         subpassDescription.colorAttachmentCount = 1;
         subpassDescription.pColorAttachments = &colorAttachmentReference;
         subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
+        subpassDescription.pResolveAttachments = &colorAttachmentResolveRef;
 
         // Subpass dependencies
         VkSubpassDependency subpassDependency {};
         subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         subpassDependency.dstSubpass = 0;
         subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        subpassDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-        std::array<VkAttachmentDescription, 2> attachments {colorAttachmentDescription, depthAttachmentDescription};
+        std::array<VkAttachmentDescription, 3> attachments
+        {
+            colorAttachmentDescription,
+            depthAttachmentDescription,
+            colorAttachmentResolve
+        };
         VkRenderPassCreateInfo renderPassCreateInfo {};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -1076,7 +1097,7 @@ private:
         VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo {};
         multisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
-        multisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampleStateCreateInfo.rasterizationSamples = msaaSamples;
         multisampleStateCreateInfo.minSampleShading = 1.0f; // optional
         multisampleStateCreateInfo.pSampleMask = nullptr; // optional
         multisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // optional
@@ -1172,9 +1193,10 @@ private:
         // create a framebuffer for each image view
         for(size_t i {0}; i < swapChainFramebuffers.size(); i++)
         {
-            std::array<VkImageView, 2> attachments {
-                swapChainImageViews[i],
-                depthImageView
+            std::array<VkImageView, 3> attachments {
+                colorImageView,
+                depthImageView,
+                swapChainImageViews[i]
             };
 
             VkFramebufferCreateInfo framebufferCreateInfo {};
