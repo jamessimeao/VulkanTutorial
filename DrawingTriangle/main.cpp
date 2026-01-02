@@ -19,7 +19,7 @@
 #include <array>
 #include <chrono>
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
+#include "libraries/stb/stb_image.h"
 
 // Validation layers
 const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
