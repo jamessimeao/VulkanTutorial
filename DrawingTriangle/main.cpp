@@ -2025,6 +2025,11 @@ private:
         {
             vkDestroyFramebuffer(vkDevice, framebuffer, nullptr);
         }
+        
+        // Destroy depth buffer
+        vkFreeMemory(vkDevice, depthImageMemory, nullptr);
+        vkDestroyImageView(vkDevice, depthImageView, nullptr);
+        vkDestroyImage(vkDevice, depthImage, nullptr);
 
         // Destroy the swap chain image views
         for(VkImageView & imageView : swapChainImageViews)
@@ -2046,11 +2051,6 @@ private:
             vkDestroyBuffer(vkDevice, uniformBuffers[i], nullptr);
             vkFreeMemory(vkDevice, uniformBuffersMemory[i], nullptr);
         }
-
-        // Destroy depth buffer
-        vkFreeMemory(vkDevice, depthImageMemory, nullptr);
-        vkDestroyImageView(vkDevice, depthImageView, nullptr);
-        vkDestroyImage(vkDevice, depthImage, nullptr);
 
         // Destroy texture sampler
         vkDestroySampler(vkDevice, textureSampler, nullptr);
