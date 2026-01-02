@@ -97,8 +97,6 @@ struct Vertex
 };
 
 // Model
-const uint32_t TEXTURE_WIDTH {800};
-const uint32_t TEXTURE_HEIGHT {600};
 const std::string MODEL_PATH {"models/viking_room.obj"};
 const std::string TEXTURE_PATH {"textures/viking_room.png"};
 
