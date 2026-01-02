@@ -1193,7 +1193,9 @@ private:
         // create a framebuffer for each image view
         for(size_t i {0}; i < swapChainFramebuffers.size(); i++)
         {
-            std::array<VkImageView, 3> attachments {
+            // order is important here
+            std::array<VkImageView, 3> attachments
+            {
                 colorImageView,
                 depthImageView,
                 swapChainImageViews[i]
