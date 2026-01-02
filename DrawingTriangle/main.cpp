@@ -96,6 +96,12 @@ struct Vertex
     }
 };
 
+// Model
+const uint32_t TEXTURE_WIDTH {800};
+const uint32_t TEXTURE_HEIGHT {600};
+const std::string MODEL_PATH {"models/viking_room.obj"};
+const std::string TEXTURE_PATH {"textures/viking_room.png"};
+
 const std::vector<Vertex> vertices
 {
     // higher square
@@ -1908,7 +1914,7 @@ private:
     {
         int textureWidth, textureHeight, textureChannels;
         // STBI_rgb_alpha forces to load with an alpha channel
-        stbi_uc * pixels {stbi_load("textures/texture.jpg", &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha)};
+        stbi_uc * pixels {stbi_load(TEXTURE_PATH.c_str(), &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha)};
         VkDeviceSize imageSize = textureWidth*textureHeight*4; // 4 bytes per pixel
         
         if(!pixels)
