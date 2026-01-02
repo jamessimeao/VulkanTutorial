@@ -1992,7 +1992,8 @@ private:
             blit.dstOffsets[1] =
             {
                 mipWidth > 1 ? mipWidth/2 : 1,
-                mipHeight > 1 ? mipHeight/2 : 1
+                mipHeight > 1 ? mipHeight/2 : 1,
+                1
             };
             blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             blit.dstSubresource.mipLevel = i;
