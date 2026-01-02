@@ -2167,9 +2167,9 @@ private:
         samplerCreateInfo.compareEnable = VK_FALSE;
         samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
         samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerCreateInfo.mipLodBias = 0.0f;
-        samplerCreateInfo.minLod = 0.0f;
-        samplerCreateInfo.maxLod = 0.0f;
+        samplerCreateInfo.mipLodBias = 0.0f; // optional
+        samplerCreateInfo.minLod = 0.0f; // optional
+        samplerCreateInfo.maxLod = VK_LOD_CLAMP_NONE;
 
         VkResult result = vkCreateSampler(vkDevice, &samplerCreateInfo, nullptr, &textureSampler);
         if(result != VK_SUCCESS)
