@@ -12,6 +12,6 @@ layout(binding = 1) uniform sampler2D textureSampler;
 void main()
 {
     //outColor = vec4(textureCoord, 0.0, 1.0); // render texture coordinates as color
-    //outColor = texture(textureSampler, textureCoord); // render texture
-    outColor = vec4(fragColor * texture(textureSampler, textureCoord).rgb, 1.0); // render texture with color modified by fragColor
+    outColor = texture(textureSampler, textureCoord); // render texture
+    //outColor = vec4(fragColor * texture(textureSampler, textureCoord).rgb, 1.0); // render texture with color modified by fragColor
 }
