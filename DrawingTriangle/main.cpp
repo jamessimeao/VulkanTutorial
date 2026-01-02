@@ -244,6 +244,9 @@ private:
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
 
+    // Multisampling
+    VkSampleCountFlagBits msaaSamples {VK_SAMPLE_COUNT_1_BIT}; // initialize with no multisampling
+
 public:
     void run()
     {
@@ -447,6 +450,8 @@ private:
             if(isDeviceSuitable(device))
             {
                 vkPhysicalDevice = device;
+                msaaSamples = getMaxUsableSampleCount();
+                std::cout << "msaaSamples = " << msaaSamples << std::endl;
                 break;
             }
         }
@@ -2230,6 +2235,39 @@ private:
                 vertexIndices.push_back(uniqueVertices[vertex]);
             }
         }
+    }
+
+    VkSampleCountFlagBits getMaxUsableSampleCount()
+    {
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(vkPhysicalDevice, &physicalDeviceProperties);
+
+        VkSampleCountFlags availableSampleCountFlags {
+            physicalDeviceProperties.limits.framebufferColorSampleCounts &
+            physicalDeviceProperties.limits.framebufferDepthSampleCounts
+        };
+
+        std::array<VkSampleCountFlagBits, 7> sampleCountFlagBitsDescending {
+            VK_SAMPLE_COUNT_64_BIT,
+            VK_SAMPLE_COUNT_32_BIT,
+            VK_SAMPLE_COUNT_16_BIT,
+            VK_SAMPLE_COUNT_8_BIT,
+            VK_SAMPLE_COUNT_4_BIT,
+            VK_SAMPLE_COUNT_2_BIT,
+            VK_SAMPLE_COUNT_1_BIT
+        };
+
+        // Select a sample count flag. The last one, VK_SAMPLE_COUNT_1_BIT, should always be available,
+        // so the function should return before finishing this for loop.
+        for(size_t i {0}; i < sampleCountFlagBitsDescending.size(); i++)
+        {
+            if(availableSampleCountFlags & sampleCountFlagBitsDescending[i])
+            {
+                return sampleCountFlagBitsDescending[i];
+            }
+        }
+
+        throw std::runtime_error("Error in getMaxUsableSampleCount: no sample count flag selected.");
     }
 
     void mainLoop()
