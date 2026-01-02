@@ -182,7 +182,7 @@ private:
 
     // Vertices data
     std::vector<Vertex> vertices;
-    std::vector<uint16_t> vertexIndices;
+    std::vector<uint32_t> vertexIndices;
     
     // Vertex buffer
     VkBuffer vertexBuffer;
@@ -1229,7 +1229,7 @@ private:
         );
 
         // Bind index buffer
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         // Since we are using dynamic states, we have to set the viewport and scissor before drawing
         VkViewport viewport {};
