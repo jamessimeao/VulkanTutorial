@@ -2024,8 +2024,8 @@ private:
                 };
 
                 vertex.textureCoord = {
-                    attrib.texcoords[2*index.vertex_index],
-                    attrib.texcoords[2*index.vertex_index+1]
+                    attrib.texcoords[2*index.texcoord_index],
+                    attrib.texcoords[2*index.texcoord_index+1]
                 };
 
                 vertex.color = {1.0f, 1.0f, 1.0f};
