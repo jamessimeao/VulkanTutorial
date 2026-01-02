@@ -1983,7 +1983,7 @@ private:
 
             VkImageBlit blit {};
             blit.srcOffsets[0] = {0, 0, 0};
-            blit.srcOffsets[0] = {mipWidth, mipHeight, 1};
+            blit.srcOffsets[1] = {mipWidth, mipHeight, 1};
             blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             blit.srcSubresource.mipLevel = i-1;
             blit.srcSubresource.baseArrayLayer = 0;
