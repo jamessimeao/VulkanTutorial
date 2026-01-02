@@ -24,6 +24,7 @@
 #include "libraries/stb/stb_image.h"
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "libraries/tinyobjloader/tiny_obj_loader.h"
+#include <unordered_map>
 
 // Validation layers
 const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
@@ -211,7 +212,7 @@ private:
     // Vertices data
     std::vector<Vertex> vertices;
     std::vector<uint32_t> vertexIndices;
-    
+
     // Vertex buffer
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -2038,12 +2039,19 @@ private:
             throw std::runtime_error(err);
         }
 
+        
+        // Stores a unique vertex and its index.
+        // It is used only to verify if a vertex is new and assign a index to new vertices.
+        // New vertices and their indices are then stored in vertices and vertexIndices.
+        std::unordered_map<Vertex, uint32_t> uniqueVertices;
+
         for(const tinyobj::shape_t & shape : shapes)
         {
             for(const tinyobj::index_t & index : shape.mesh.indices)
             {
                 Vertex vertex {};
 
+                // Initialize vertex
                 vertex.pos = {
                     attrib.vertices[3*index.vertex_index],
                     attrib.vertices[3*index.vertex_index + 1],
@@ -2056,9 +2064,17 @@ private:
                 };
 
                 vertex.color = {1.0f, 1.0f, 1.0f};
+            
+                // Only put vertex in vertices vector if it is new
+                if(uniqueVertices.count(vertex) == 0)
+                {
+                    // The index of the unique vertex will autoincrement
+                    uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 
-                vertices.push_back(vertex);
-                vertexIndices.push_back(vertexIndices.size()); // autoincrement, to be changed later
+                    vertices.push_back(vertex);
+                }
+                
+                vertexIndices.push_back(uniqueVertices[vertex]);
             }
         }
     }
