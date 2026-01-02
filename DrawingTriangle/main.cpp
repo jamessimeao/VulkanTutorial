@@ -281,6 +281,8 @@ private:
         createTextureImageView();
         std::cout << "create texture sampler" << std::endl;
         createTextureSampler();
+        std::cout << "load model" << std::endl;
+        loadModel();
         std::cout << "create vertex buffer" << std::endl;
         createVertexBuffer();
         std::cout << "create index buffer" << std::endl;
@@ -1992,6 +1994,45 @@ private:
         if(result != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create texture sampler.");
+        }
+    }
+
+    void loadModel()
+    {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string warn;
+        std::string err;
+
+        if(!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str()))
+        {
+            std::cerr << "Failed to load model." << std::endl;
+            throw std::runtime_error(err);
+        }
+
+        for(const tinyobj::shape_t & shape : shapes)
+        {
+            for(const tinyobj::index_t & index : shape.mesh.indices)
+            {
+                Vertex vertex {};
+
+                vertex.pos = {
+                    attrib.vertices[3*index.vertex_index],
+                    attrib.vertices[3*index.vertex_index + 1],
+                    attrib.vertices[3*index.vertex_index + 2]
+                };
+
+                vertex.textureCoord = {
+                    attrib.texcoords[2*index.vertex_index],
+                    attrib.texcoords[2*index.vertex_index+1]
+                };
+
+                vertex.color = {1.0f, 1.0f, 1.0f};
+
+                vertices.push_back(vertex);
+                vertexIndices.push_back(vertexIndices.size()); // autoincrement, to be changed later
+            }
         }
     }
 
