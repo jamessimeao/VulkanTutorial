@@ -1928,7 +1928,7 @@ private:
             swapChainExtent.width,
             swapChainExtent.height,
             1,
-            VK_SAMPLE_COUNT_1_BIT,
+            msaaSamples,
             depthFormat,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
