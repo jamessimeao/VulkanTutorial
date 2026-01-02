@@ -1,6 +1,5 @@
 My implementation of the Vulkan tutorial from Alexander Overvoorde. I'm using this tutorial to learn deeper about computer graphics. I may use Vulkan in the future for some computer graphics or computer vision projects.
 
-At this point, I'm close to finishing the tutorial. I already loaded a 3d model and rendered it.
+I've done all the rendering part of the tutorial, up to the Multisampling chapter. The program loads a 3d model and renders it with a rotation:
 
-https://github.com/user-attachments/assets/38afe6f9-ae10-4c35-9f43-329cca51e05b
-
+https://github.com/user-attachments/assets/baf3bdd7-42f3-4875-94cb-619b219d5257
