@@ -246,6 +246,9 @@ private:
 
     // Multisampling
     VkSampleCountFlagBits msaaSamples {VK_SAMPLE_COUNT_1_BIT}; // initialize with no multisampling
+    VkImage colorImage;
+    VkDeviceMemory colorImageMemory;
+    VkImageView colorImageView;
 
 public:
     void run()
@@ -301,6 +304,8 @@ private:
         createDescriptorSetLayout();
         std::cout << "create graphics pipeline" << std::endl;
         createGraphicsPipeline();
+        std::cout << "create color resources" << std::endl;
+        createColorResources();
         std::cout << "create depth resources" << std::endl;
         createDepthResources();
         std::cout << "create framebuffers" << std::endl;
@@ -793,6 +798,7 @@ private:
 
         createSwapChain();
         createImageViews();
+        createColorResources();
         createDepthResources();
         createFramebuffers();
     }
@@ -1720,6 +1726,7 @@ private:
         uint32_t width,
         uint32_t height,
         uint32_t mipLevels,
+        VkSampleCountFlagBits samples,
         VkFormat format,
         VkImageTiling tiling,
         VkImageUsageFlags usageFlags,
@@ -1741,7 +1748,7 @@ private:
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageCreateInfo.usage = usageFlags;
         imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageCreateInfo.samples = samples;
         imageCreateInfo.flags = 0; // optional
 
         VkResult result = vkCreateImage(vkDevice, &imageCreateInfo, nullptr, &image);
@@ -1921,6 +1928,7 @@ private:
             swapChainExtent.width,
             swapChainExtent.height,
             1,
+            VK_SAMPLE_COUNT_1_BIT,
             depthFormat,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -2104,6 +2112,7 @@ private:
             textureWidth,
             textureHeight,
             mipLevels,
+            VK_SAMPLE_COUNT_1_BIT,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -2270,6 +2279,26 @@ private:
         throw std::runtime_error("Error in getMaxUsableSampleCount: no sample count flag selected.");
     }
 
+    void createColorResources()
+    {
+        VkFormat colorFormat {swapChainImageFormat};
+
+        createImage(
+            swapChainExtent.width,
+            swapChainExtent.height,
+            1,
+            msaaSamples,
+            colorFormat,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            colorImage,
+            colorImageMemory
+        );
+
+        colorImageView = createImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+    }
+
     void mainLoop()
     {
         // Keep the window open
@@ -2284,6 +2313,11 @@ private:
 
     void cleanupSwapChain()
     {
+        // Destroy resources for MSAA
+        vkFreeMemory(vkDevice, colorImageMemory, nullptr);
+        vkDestroyImageView(vkDevice, colorImageView, nullptr);
+        vkDestroyImage(vkDevice, colorImage, nullptr);
+
         // Destroy framebuffers
         for(VkFramebuffer & framebuffer : swapChainFramebuffers)
         {
