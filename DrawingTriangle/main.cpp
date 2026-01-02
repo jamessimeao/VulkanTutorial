@@ -102,28 +102,6 @@ const uint32_t TEXTURE_HEIGHT {600};
 const std::string MODEL_PATH {"models/viking_room.obj"};
 const std::string TEXTURE_PATH {"textures/viking_room.png"};
 
-const std::vector<Vertex> vertices
-{
-    // higher square
-    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-    // lower square
-    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-};
-
-const std::vector<uint16_t> vertexIndices
-{
-    // higher square
-    0, 1, 2, 2, 3, 0,
-    // lower square
-    4, 5, 6, 6, 7, 4
-};
-
 struct UniformBufferObject
 {
     glm::mat4 model;
@@ -204,6 +182,10 @@ private:
     // Frame flight
     uint32_t currentFrame {0};
 
+    // Vertices data
+    std::vector<Vertex> vertices;
+    std::vector<uint16_t> vertexIndices;
+    
     // Vertex buffer
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
