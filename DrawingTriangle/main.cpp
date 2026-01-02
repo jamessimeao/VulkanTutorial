@@ -2,9 +2,11 @@
 #define GLFW_INCLUDE_VULKAN
 #define GLM_FORCE_RADIANS // for glm::rotate
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GML_ENABLE_EXPERIMENTAL
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/hash.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
